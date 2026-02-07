@@ -1,0 +1,14 @@
+name: isic2017_std_train
+mode: standard_train
+image_size: 256
+computed_on: "2026-02-05"
+computed_by: "scripts/compute_train_stats.py"
+split_used: "train"
+dataset_id: "isic2017_vmunet_split"     # human-readable
+file_list_hash: ""                      # optional (sha256 of filenames)
+notes: "Per-channel stats computed on resized images; no aug; ToTensor(/255) only."
+
+# Values expected by standard_train
+mean: [0.7130480131349732, 0.6069051612218899, 0.5614104917723223]
+std:  [0.15458055247033792, 0.16366840804634103, 0.18008193802702935]
+

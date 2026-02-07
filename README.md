@@ -34,6 +34,17 @@ Designed to be:
 
 ---
 
+##  Datasets
+
+This projects currently supports datasets with images RGB (.jpg and .png) which should be placed in the data folder.
+Supported public datasets:
+
+- ISIC2017
+- Kvasir-SEG
+- BUSI
+
+---
+
 ## Evaluation Metrics
 
 - Dice Similarity Coefficient
@@ -53,20 +64,36 @@ Please make sure that your equipment meets the necessary requirements.
 
 ## Installation
 
-Create and activate a conda environment by:
-```bash
+#### Create and activate a conda environment by:
+```
 conda create --name <my-env> python=3.11
 ```
-```bash
+```
 conda activate <my-env> 
 ```
-```bash
+#### Install Pytorch+CUDA
+
+```
 pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu124
 ```
+#### Hydra
+
+```
+pip install hydra-core --upgrade
+```
+### Onnx
+```
+pip install onnx
+```
+### Neutron (Optional)
+```
+pip install netron
+```
+
 
 ### Libraries for evaluation and experiment tracking
 
-```bash
+```
 pip install mlflow psutil pynvml torchinfo ultralytics-thop einops
 ```
 ---

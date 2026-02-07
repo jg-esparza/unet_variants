@@ -1,0 +1,9 @@
+
+name: isic2017_vmunet
+mode: vmunet
+image_size: 256
+source: "vmunet repo"
+notes: "Split-specific scalar stats for reproduction; includes per-split values."
+# scalar stats in uint8 domain (0..255)
+train: { mean: 157.561, std: 26.706 }
+val:   { mean: 149.034, std: 32.022 }

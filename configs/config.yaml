@@ -1,0 +1,37 @@
+
+# configs/config.yaml
+defaults:
+  - model: unet
+  - data: isic2017
+  - logging: mlflow
+  - train: default
+  - task: binary
+  - _self_
+
+project:
+  name: unet_variants
+  seed: 42
+  device: cuda
+
+# NEW: paths group (works everywhere)
+paths:
+  # repo root when running scripts (Hydra may chdir; we keep chdir false so cwd stays stable)
+  repo_root: ${oc.env:UNET_VARIANTS_ROOT}
+
+  data_dir: ${paths.repo_root}/data
+  runs_dir: ${paths.repo_root}/runs
+  onnx_dir: ${paths.runs_dir}/onnx
+
+inspect:
+  batch_size: 1
+  export_onnx:
+    enable: False
+    path: ${paths.onnx_dir}/${model.name}_${data.name}.onnx
+    view: False
+    port: 8081
+
+hydra:
+  run:
+    dir: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${now:%H-%M-%S}_${model.name}_${data.name}
+  job:
+    chdir: false

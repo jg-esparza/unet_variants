@@ -1,0 +1,58 @@
+# configs/data/dataset.yaml
+defaults:
+  - stats: isic2017_vmunet
+  - _self_
+
+
+name: isic2017
+
+# paths
+root: ${paths.data_dir}/isic2017
+
+# optional: local zip path (manual download)
+archive_path: ${paths.data_dir}/isic2017.zip     # e.g. //Downloads/isic2017.zip
+archive_url: ""      # optional later if hosted it somewhere
+
+
+# expected already split structure
+structure: already_split
+
+# preprocessing
+image_size: 256
+in_channels: 3
+
+norm:
+  # ---- MODE SWITCH ----
+  # vmunet: reproduce your thesis/VM-UNet preprocessing (split-specific stats + minmax)
+  # standard_train: train stats for ALL splits + per-channel + no minmax (best practice)
+  # imagenet: common for pretrained backbones
+  # none: no normalization (only scaling to [0,1])
+  mode: ${data.stats.mode}
+
+  # optional flag: use train stats for val as well (best practice)
+  use_train_stats_for_all: false
+
+  # Existing split-specific scalar stats (uint8 domain)
+  stats:
+    train: ${data.stats.train}
+    val:   ${data.stats.val}
+
+
+  # Optional for standard_train (per-channel, in [0,1] domain)
+  # Fill these later by computing on train split only.
+  train_stats_channel:
+    mean: ${data.stats.mean}
+    std: ${data.stats.std}
+
+  imagenet_stats:
+    mean: ${data.stats.mean}
+    std: ${data.stats.std}
+
+# augmentation
+augment:
+  enabled: true
+  hflip: 0.5
+  vflip: 0.5
+  rotate_p: 0.2
+  rotate_deg: [0, 360]
+

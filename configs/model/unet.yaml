@@ -1,0 +1,23 @@
+# configs/model/unet.yaml
+name: unet
+
+# I/O
+in_channels: ${data.in_channels}
+out_channels: ${task.out_channels}
+
+# architecture knobs
+base_channels: 32
+depth: 4
+bilinear: true
+
+# optional: normalization/activation conventions
+norm: batch
+activation: relu
+
+encoder: 'Conv'
+n_skip: 4
+hidden_layers: 1024
+encoder_in_channels: [64, 128, 256]
+encoder_out_channels: [64, 128, 256, 512]
+decoder_channels: [256, 128, 64, 16]
+skip_channels: [512, 256, 128, 64]

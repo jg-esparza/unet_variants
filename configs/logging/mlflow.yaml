@@ -1,0 +1,11 @@
+# configs/logging/mlflow.yaml
+backend: mlflow
+enable: true
+
+tracking_uri: file:./runs/mlruns
+experiment_name: unet_variants
+run_name: ${model.name}_${data.name}_${now:%Y%m%d_%H%M%S}
+
+tags:
+  framework: pytorch
+  task: ${task.name}

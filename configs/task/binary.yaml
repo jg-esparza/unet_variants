@@ -1,0 +1,2 @@
+name: binary_segmentation
+out_channels: 1
