@@ -24,10 +24,21 @@ paths:
 
 inspect:
   batch_size: 1
+  torchinfo_summary:
+    print_summary: False
+    save_summary: True
+    export_path: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${now:%H-%M-%S}_${model.name}_${data.name}/summary_${model.name}.txt
+
+  flops_thop:
+    print_report: False
+    save_report: True
+    export_path: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${now:%H-%M-%S}_${model.name}_${data.name}/flops_${model.name}.txt
+    save_json: None
+
   export_onnx:
-    enable: False
+    enable: True
     path: ${paths.onnx_dir}/${model.name}_${data.name}.onnx
-    view: False
+    view: True
     port: 8081
 
 hydra:

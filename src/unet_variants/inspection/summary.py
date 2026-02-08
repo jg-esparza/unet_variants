@@ -1,36 +1,81 @@
 
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Tuple, Optional
+import os
 import torch
 from torch import nn
 
-try:
-    from torchinfo import summary as torchinfo_summary
-except ImportError as e:
-    torchinfo_summary = None
 
-
-def print_torchinfo_summary(
+def get_torchinfo_summary(
     model: nn.Module,
     input_size: Tuple[int, int, int, int],
-    device: Union[str, torch.device] = "cpu",
-    verbose: int = 1,
-) -> None:
+    device: torch.device,
+    verbose: int = 0,
+) -> str:
     """
-    Print torchinfo summary.
-    input_size: (B, C, H, W)
-    """
-    if torchinfo_summary is None:
-        raise ImportError(
-            "torchinfo is not installed. Install with: pip install torchinfo"
-        )
+    Generate a torchinfo summary as a string (useful for MLflow artifacts).
 
-    print("\n=== torchinfo summary ===")
-    torchinfo_summary(
+    Parameters
+    ----------
+    model:
+        Model to summarize.
+    input_size:
+        Input tensor size as (B, C, H, W).
+    device:
+        Device on which to run the forward pass for summary.
+    verbose:
+        torchinfo verbosity level.
+
+    Returns
+    -------
+    summary_text:
+        Human-readable summary text.
+
+    Raises
+    ------
+    ImportError:
+        If torchinfo is not installed.
+    """
+    try:
+        from torchinfo import summary as torchinfo_summary
+    except ImportError as e:
+        raise ImportError("Install torchinfo: pip install torchinfo") from e
+
+    summary_obj = torchinfo_summary(
         model,
         input_size=input_size,
         device=str(device),
         verbose=verbose,
         col_names=("input_size", "output_size", "num_params", "kernel_size", "mult_adds"),
     )
+    return str(summary_obj)
+
+
+def save_torchinfo_summary(
+    model: nn.Module,
+    input_size: Tuple[int, int, int, int],
+    device: torch.device,
+    path: str,
+    verbose: int = 1,
+) -> str:
+    """
+    Generate and save torchinfo summary to a text file.
+
+    Parameters
+    ----------
+    model, input_size, device, verbose:
+        Same as get_torchinfo_summary().
+    path:
+        Where to save the summary text (e.g., "runs/.../summary.txt").
+
+    Returns
+    -------
+    path:
+        The saved file path.
+    """
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    text = get_torchinfo_summary(model, input_size, device, verbose=verbose)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text + "\n")
+    return path

@@ -1,37 +1,37 @@
+
 from __future__ import annotations
 
-from typing import Tuple
-import os
+from typing import Optional
+
 import torch
 from torch import nn
 
 
-def export_onnx(
+def preview_predictions(
     model: nn.Module,
-    export_path: str,
-    input_size: Tuple[int, int, int, int],
+    batch: dict,
     device: torch.device,
-    opset: int = 17,
-) -> str:
+    save_path: Optional[str] = None,
+) -> None:
     """
-    Export model to ONNX for visualization in Netron.
+    (Optional) Visualize model predictions for a batch.
+
+    Parameters
+    ----------
+    model:
+        Segmentation model.
+    batch:
+        Batch dict from dataloader (e.g., {"image": ..., "mask": ...}).
+    device:
+        Device for inference.
+    save_path:
+        If provided, saves visualization image to this path.
+
+    Notes
+    -----
+    Implement later using matplotlib / PIL:
+    - input image
+    - ground truth mask overlay
+    - predicted mask overlay
     """
-    os.makedirs(os.path.dirname(export_path), exist_ok=True)
-
-    b, c, h, w = input_size
-    dummy = torch.randn(b, c, h, w, device=device)
-
-    model.eval()
-    with torch.no_grad():
-        torch.onnx.export(
-            model,
-            dummy,
-            export_path,
-            export_params=True,
-            opset_version=opset,
-            do_constant_folding=True,
-            input_names=["input"],
-            output_names=["output"],
-            dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}},
-        )
-    return export_path
+    raise NotImplementedError("Visualization is not implemented yet.")

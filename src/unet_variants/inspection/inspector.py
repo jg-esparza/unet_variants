@@ -2,187 +2,172 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Tuple, Union, Dict, Any
+from typing import Optional, Tuple, Union, Dict
 
-import os
 import torch
 from torch import nn
+
+from .summary import get_torchinfo_summary, save_torchinfo_summary
+from .flops import FlopsResult, estimate_flops_thop, format_flops, save_flops_report
+from .onnx import export_onnx_graph, view_onnx_graph
 
 
 @dataclass
 class InspectionReport:
+    """
+    Output of a one-shot model inspection.
+
+    Attributes
+    ----------
+    total_params:
+        Total number of parameters in the model.
+    trainable_params:
+        Trainable parameters (requires_grad=True).
+    flops:
+        FLOPs estimate (may be None).
+    macs:
+        MACs estimate (may be None).
+    onnx_path:
+        ONNX export path (if exported).
+    summary_path:
+        Path to saved torchinfo summary (if saved).
+    flops_txt_path:
+        Path to saved FLOPs report (txt) (if saved).
+    flops_json_path:
+        Path to saved FLOPs report (json) (if saved).
+    """
     total_params: int
     trainable_params: int
     flops: Optional[float] = None
     macs: Optional[float] = None
     onnx_path: Optional[str] = None
+    summary_path: Optional[str] = None
+    flops_txt_path: Optional[str] = None
+    flops_json_path: Optional[str] = None
 
 
 class ModelInspector:
     """
-    Model inspector.
+    High-level model inspection facade.
 
-    Features:
-      - torchinfo summary
-      - parameter counts
-      - FLOPs/MACs estimate (THOP if installed)
-      - export to ONNX
-      - view ONNX graph via Netron (if installed) or netron.app
+    Provides:
+    - parameter counts
+    - torchinfo summary (string + optional file saving)
+    - FLOPs/MACs via THOP (structured + optional txt/json saving)
+    - ONNX export + view (no logging here yet)
     """
 
-    def __init__(
-        self,
-        model: nn.Module,
-        device: Union[str, torch.device] = "cpu",
-    ):
-        self.model = model
+    def __init__(self, model: nn.Module, device: Union[str, torch.device] = "cpu"):
         self.device = torch.device(device)
-        self.model = self.model.to(self.device).eval()
+        self.model = model.to(self.device).eval()
 
-    # -------------------------
-    # Basics
-    # -------------------------
     def count_params(self) -> Tuple[int, int]:
         total = sum(p.numel() for p in self.model.parameters())
         trainable = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         return int(total), int(trainable)
 
-    # -------------------------
-    # torchinfo summary
-    # -------------------------
     def summary(
         self,
         input_size: Tuple[int, int, int, int],
-        verbose: int = 1,
-    ) -> None:
+        verbose: int = 0,
+        print_summary: bool = True,
+        save_summary: bool = False,
+        save_path: Optional[str] = None,
+    ) -> str:
         """
-        Print a torchinfo summary. input_size should be (B, C, H, W).
+        Generate torchinfo summary as string, optionally print and/or save to file.
         """
-        try:
-            from torchinfo import summary as torchinfo_summary
-        except ImportError as e:
-            raise ImportError("Install torchinfo: pip install torchinfo") from e
+        text = get_torchinfo_summary(self.model, input_size, self.device, verbose=verbose)
 
-        print("\n=== torchinfo summary ===")
-        torchinfo_summary(
-            self.model,
-            input_size=input_size,
-            device=str(self.device),
-            verbose=verbose,
-            col_names=("input_size", "output_size", "num_params", "kernel_size", "mult_adds"),
-        )
+        if print_summary:
+            print("\n=== torchinfo summary ===")
+            print(text)
 
-    # -------------------------
-    # FLOPs / MACs
-    # -------------------------
+        if save_summary is not False:
+            save_torchinfo_summary(self.model, input_size, self.device, path=save_path, verbose=verbose)
+        return text
+
     @torch.no_grad()
     def flops(
         self,
         input_size: Tuple[int, int, int, int],
-    ) -> Tuple[Optional[float], Optional[float]]:
+        print_report: bool = True,
+        save_report: bool = False,
+        save_txt: Optional[str] = None,
+        save_json: Optional[str] = None,
+    ) -> FlopsResult:
         """
-        Estimate FLOPs/MACs using THOP if available.
-        Returns (flops, macs) or (None, None) if THOP isn't installed or fails.
+        Estimate FLOPs/MACs via THOP, optionally print and/or save as txt/json.
         """
-        try:
-            from thop import profile
-        except ImportError:
-            return None, None
-
-        b, c, h, w = input_size
-        x = torch.randn(b, c, h, w, device=self.device)
-
-        try:
-            macs, _params = profile(self.model, inputs=(x,), verbose=False)
-            flops = 2.0 * macs  # common approximation: FLOPs ≈ 2 * MACs
-            return float(flops), float(macs)
-        except Exception:
-            return None, None
-
-    # -------------------------
-    # Export ONNX
-    # -------------------------
-    @torch.no_grad()
-    def export_onnx(
-        self,
-        export_path: str,
-        input_size: Tuple[int, int, int, int],
-        opset: int = 17,
-    ) -> str:
-        """
-        Export ONNX using torch.onnx.export.
-        This produces a standardized graph file that can be viewed in Netron. [2](https://docs.pytorch.org/docs/stable/onnx_export.html)[3](http://docs.pytorch.wiki/en/onnx.html)
-        """
-        os.makedirs(os.path.dirname(export_path), exist_ok=True)
-
-        b, c, h, w = input_size
-        dummy = torch.randn(b, c, h, w, device=self.device)
-
-        self.model.eval()
-
-        # PyTorch exporter (classic API). [3](http://docs.pytorch.wiki/en/onnx.html)
-        result = torch.onnx.export(
-            self.model,
-            dummy,
-            export_path,
-            export_params=True,
-            opset_version=opset,
-            do_constant_folding=True,
-            input_names=["input"],
-            output_names=["output"],
-            dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}},
+        result = estimate_flops_thop(
+            model=self.model,
+            input_size=input_size,
+            device=self.device
         )
 
-        # Some newer flows can return an ONNXProgram; keep this robust:
-        if hasattr(result, "save"):
-            result.save(export_path)
+        if print_report:
+            print("\n" + format_flops(result))
 
-        return export_path
+        if save_report:
+            save_flops_report(result, txt_path=save_txt, json_path=save_json)
+        return result
 
-    # -------------------------
-    # View ONNX (Netron)
-    # -------------------------
-    def view_onnx(
-        self,
-        onnx_path: str,
-        port: int = 8081,
-        host: str = "127.0.0.1",
-        browse: bool = True,
-    ) -> None:
+    @torch.no_grad()
+    def export_onnx(self, export_path: str, input_size: Tuple[int, int, int, int], opset: int = 17) -> str:
         """
-        View an ONNX file using Netron.
-        - If netron Python package is installed, starts a local viewer server.
-        - Otherwise, prints instructions to open via https://netron.app/ or the desktop app. [4](https://github.com/lutzroeder/netron)[6](https://netron.app/)[5](https://pypi.org/project/netron/)
+        Export ONNX graph. (Logging as MLflow artifact can be added in the runner later.)
         """
-        if not os.path.exists(onnx_path):
-            raise FileNotFoundError(f"ONNX file not found: {onnx_path}")
+        return export_onnx_graph(self.model, export_path, input_size, self.device, opset=opset)
 
-        try:
-            import netron
-            # Netron supports Python usage: `pip install netron`, run netron.start(file). [4](https://github.com/lutzroeder/netron)[5](https://pypi.org/project/netron/)
-            netron.start(onnx_path, address=(host, port), browse=browse)
-            print(f"Netron started at http://{host}:{port} (showing {onnx_path})")
-        except ImportError:
-            print("Netron is not installed.")
-            print("Option A (recommended): pip install netron  (then rerun view_onnx)")
-            print("Option B: open the file in the web viewer at https://netron.app/")
-            print("Option C: install the Netron desktop app from the Netron GitHub releases.")
+    def view_onnx(self, onnx_path: str, port: int = 8081, host: str = "127.0.0.1", browse: bool = True) -> None:
+        view_onnx_graph(onnx_path=onnx_path, host=host, port=port, browse=browse)
 
-    # -------------------------
-    # One-shot report
-    # -------------------------
     def report(
         self,
         input_size: Tuple[int, int, int, int],
         export_onnx_path: Optional[str] = None,
         print_summary: bool = True,
+        save_summary: bool = False,
+        verbose: int = 0,
+        save_summary_path: Optional[str] = None,
+        print_flops_report: bool = True,
+        save_flops_report: bool = False,
+        save_flops_txt: Optional[str] = None,
+        save_flops_json: Optional[str] = None,
     ) -> InspectionReport:
+        """
+        Run a one-shot inspection pass and return a report.
+
+        This is designed to integrate cleanly with MLflow later by producing
+        file paths for artifacts (summary/flops reports/onnx).
+        """
         total, trainable = self.count_params()
+        """
+        summary_path = None
+        if print_summary or save_summary_path:
+            self.summary(
+                input_size=input_size,
+                verbose=verbose,
+                print_summary=print_summary,
+                save_path=save_summary_path,
+            )
+            summary_path = save_summary_path
+        """
+        self.summary(
+            input_size=input_size,
+            verbose=verbose,
+            print_summary=print_summary,
+            save_summary=save_summary,
+            save_path=save_summary_path,
+        )
 
-        if print_summary:
-            self.summary(input_size=input_size)
-
-        flops, macs = self.flops(input_size=input_size)
+        flops_result = self.flops(
+            input_size=input_size,
+            print_report=print_flops_report,
+            save_report=save_flops_report,
+            save_txt=save_flops_txt,
+            save_json=save_flops_json,
+        )
 
         onnx_path = None
         if export_onnx_path is not None:
@@ -191,7 +176,10 @@ class ModelInspector:
         return InspectionReport(
             total_params=total,
             trainable_params=trainable,
-            flops=flops,
-            macs=macs,
+            flops=flops_result.flops,
+            macs=flops_result.macs,
             onnx_path=onnx_path,
+            summary_path=save_summary_path,
+            flops_txt_path=save_flops_txt,
+            flops_json_path=save_flops_json,
         )
