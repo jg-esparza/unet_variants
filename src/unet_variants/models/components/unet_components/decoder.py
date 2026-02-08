@@ -1,6 +1,6 @@
 from torch.nn import Module, ModuleList
 
-from unet_variants.models.unet_components.components import Conv2dReLU, UpSample
+from unet_variants.models.components.unet_components.components import Conv2dReLU, UpSample
 
 class Decoder(Module):
     def __init__(self, config, in_channels=1024, head_channels = 512, conv_more=True):

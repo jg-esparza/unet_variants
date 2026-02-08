@@ -1,100 +1,151 @@
-# U-Net Variants Benchmark (CNN · Transformers)
 
+ U-Net Variants Benchmark (CNN · Transformers · Mamba)
 
-A clean, reproducible benchmark framework for **binary segmentation**:
-- **CNN-Based**
-    - U-Net
-- **Transformer-based**
-    
-Designed to be:
-- Config-driven
-- Reproducible
-- Easy to extend
-- Practical for research + engineering portfolios
+A clean, reproducible benchmark framework for **binary medical image segmentation**, supporting multiple public datasets and a growing collection of U‑Net variants (CNN-based, Transformer-based and Mamba-based).
 
----
+This project is **inspired by the engineering patterns developed during my M.Sc. thesis**, but it is a **new, broader, independent framework** focused on:
 
-
-## Features
-
-✅ Unified experiment runner:
-- Build model from config
-- Parameter count
-- FLOPs estimation (input-size dependent)
-- `torchinfo` summary
-- Train / Evaluate
-- Save / Load checkpoints
-
-✅ Experiment tracking:
-- MLflow logging (metrics, params, artifacts)
-
-✅ Modular design:
-- Model factory for quick additions
-- Separate training, evaluation, inspection, checkpointing modules
+- extensibility  
+- reproducibility  
+- fair model comparison  
+- modular research workflows  
+- clean engineering design
 
 ---
 
-##  Datasets
+## 🚀 Objectives
 
-This projects currently supports datasets with images RGB (.jpg and .png) which should be placed in the data folder.
-Supported public datasets:
-
-- ISIC2017
-- Kvasir-SEG
-- BUSI
+- Provide a unified and reproducible pipeline for **training / evaluation / inference**  
+- Enable rapid experimentation with different **U‑Net architectures**  
+- Offer a modular framework that researchers and engineers can easily extend  
+- Support multi-dataset benchmarking with consistent metrics and preprocessing  
 
 ---
 
-## Evaluation Metrics
+## 🧩 Supported Model Families
 
-- Dice Similarity Coefficient
-- Mean Intersection over Union
-- Accuracy
-- Sensitivity
-- Specificity
+### **CNN-Based**
+- U-Net
+- (soon) ResNet‑U‑Net
+
+### **Transformer-Based**
+- (upcoming) Swin-UNet  
+
+### **Mamba-Based**
+- (upcoming) VM‑UNet  
 
 ---
 
-## Requirements
+## ✨ Key Features
 
-Please make sure that your equipment meets the necessary requirements.
+### **Unified Experiment Runner**
+- Build models from Hydra config files  
+- Automatic parameter count  
+- FLOPs estimation (input-size dependent)  
+- Detailed `torchinfo` model summaries  
+- Train / Evaluate with consistent metrics  
+- Save / Load checkpoints  
 
-- Linux 
-- NVIDIA GPU
+### **Experiment Tracking**
+- MLflow logging  
+- Metrics, parameters, curves  
+- Artifacts (model weights, visual outputs, summaries)  
 
-## Installation
+### **Modular Architecture**
+- Dataset wrappers  
+- Dataloaders  
+- Training / evaluation engines  
+- Model factory  
+- Inspection utilities (FLOPs, summaries, visualizations)
 
-#### Create and activate a conda environment by:
+---
+
+## 📚 Supported Datasets
+
+Place datasets inside the `data/` folder following this structure:
+
+Currently supported:
+
+- **ISIC2017**
+- (upcoming)**Kvasir-SEG**
+- (upcoming)**BUSI**
+
+---
+
+## 📏 Evaluation Metrics
+
+- **Dice Similarity Coefficient (DSC)**
+- **Mean Intersection over Union (mIoU)**
+- **Accuracy**
+- **Sensitivity**
+- **Specificity**
+
+---
+
+## 🧱 Project Architecture Overview Diagram
+```markdown
+## 🏗️ Project Architecture Overview
+
+unet_variants/
+│
+├── data/                         # Dataset modules (loaders, transforms, preparation)
+│   ├── dataset.py
+│   ├── loaders.py
+│   ├── transforms.py
+│   └── prepare.py
+│
+├── engine/                       # Core training & evaluation logic
+│   ├── trainer.py
+│   ├── evaluator.py
+│   ├── inference.py
+│   └── checkpoint.py
+│
+├── inspection/                   # Introspection and profiling utilities
+│   ├── flops.py
+│   ├── summary.py
+│   ├── viz.py
+│   └── inspector.py
+│   └── onnx.py
+│
+├── losses/                       # Loss functions (BCE+Dice, etc.)
+│   └── bce_dice.py
+│
+├── metrics/                      # Metrics for segmentation evaluation
+│   └── segmentation.py
+│
+├── models/                       # Model zoo and building blocks
+│   ├── components/               # Shared blocks (conv blocks, attention, upsample)
+│   ├── unet/                     # Baseline U-Net implementation
+│   └── factory.py                # Model factory for dynamic instantiation
+│
+├── runners/                      # Experiment runner (Hydra + MLflow)
+│   └── experiment.py
+│
+├── utils/                        # General-purpose utilities
+│   ├── bootstrap.py
+│   ├── device.py
+│   ├── io.py
+│   ├── logging.py
+│   ├── seeds.py
+│   └── utils.py
+│
+└── scripts/                      # Entry points (train.py, eval.py, inspect.py)
 ```
-conda create --name <my-env> python=3.11
-```
-```
-conda activate <my-env> 
-```
-#### Install Pytorch+CUDA
 
+## ⚙️ Installation
+
+### 1. Create environment
+```
+conda create --name unet-benchmark python=3.11
+conda activate unet-benchmark
+```
+
+### 2. Install PyTorch + CUDA
 ```
 pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu124
 ```
-#### Hydra
 
+### 3. Install package locally
 ```
-pip install hydra-core --upgrade
+pip install -e .
 ```
-### Onnx
-```
-pip install onnx
-```
-### Neutron (Optional)
-```
-pip install netron
-```
-
-
-### Libraries for evaluation and experiment tracking
-
-```
-pip install mlflow psutil pynvml torchinfo ultralytics-thop einops
-```
----
-

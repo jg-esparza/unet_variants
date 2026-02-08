@@ -1,6 +1,6 @@
 from torch.nn import Module, ModuleList
 
-from unet_variants.models.unet_components.components import Conv2dReLU, DownSample
+from unet_variants.models.components.unet_components.components import Conv2dReLU, DownSample
 
 class Encoder(Module):
     def __init__(self, config):
