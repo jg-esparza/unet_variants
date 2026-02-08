@@ -8,6 +8,7 @@ import os
 import torch
 from torch import nn
 
+from unet_variants.utils.io import save_text, save_json
 
 @dataclass
 class FlopsResult:
@@ -135,17 +136,15 @@ def save_flops_report(
     paths:
         Dict with keys {"txt_path", "json_path"} mapping to saved paths (or None).
     """
+
     saved = {"txt_path": None, "json_path": None}
+
     if txt_path is not None:
-        os.makedirs(os.path.dirname(txt_path) or ".", exist_ok=True)
-        with open(txt_path, "w", encoding="utf-8") as f:
-            f.write(format_flops(result) + "\n")
+        save_text(format_flops(result), txt_path)
         saved["txt_path"] = txt_path
 
     if json_path is not None:
-        os.makedirs(os.path.dirname(json_path) or ".", exist_ok=True)
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(asdict(result), f, indent=2)
+        save_json(asdict(result), json_path)
         saved["json_path"] = json_path
 
     return saved

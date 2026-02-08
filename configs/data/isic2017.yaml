@@ -7,10 +7,10 @@ defaults:
 name: isic2017
 
 # paths
-root: ${paths.data_dir}/isic2017
+root: ${paths.data_dir}/${data.name}
 
 # optional: local zip path (manual download)
-archive_path: ${paths.data_dir}/isic2017.zip     # e.g. //Downloads/isic2017.zip
+archive_path: ${data.root}.zip     # e.g. //Downloads/isic2017.zip
 archive_url: ""      # optional later if hosted it somewhere
 
 
@@ -27,15 +27,17 @@ norm:
   # standard_train: train stats for ALL splits + per-channel + no minmax (best practice)
   # imagenet: common for pretrained backbones
   # none: no normalization (only scaling to [0,1])
-  mode: ${data.stats.mode}
+
+  #mode: ${data.stats.mode}
+  mode: vmunet
 
   # optional flag: use train stats for val as well (best practice)
   use_train_stats_for_all: false
 
   # Existing split-specific scalar stats (uint8 domain)
   stats:
-    train: [ mean: 157.561, std: 26.706 ]
-    val:   [ mean: 149.034, std: 32.022 ]
+    train: { mean: 157.561, std: 26.706 }
+    val:   { mean: 149.034, std: 32.022 }
 
 
   # Optional for standard_train (per-channel, in [0,1] domain)

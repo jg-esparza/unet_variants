@@ -6,6 +6,7 @@ import os
 import torch
 from torch import nn
 
+from unet_variants.utils.io import save_text
 
 def get_torchinfo_summary(
     model: nn.Module,
@@ -74,8 +75,6 @@ def save_torchinfo_summary(
     path:
         The saved file path.
     """
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     text = get_torchinfo_summary(model, input_size, device, verbose=verbose)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(text + "\n")
+    save_text(text, path)
     return path
