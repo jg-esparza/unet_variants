@@ -1,8 +1,8 @@
 from torch.nn import Module
 
-from unet_variants.models.unet_parts.parts import SegmentationHead
-from unet_variants.models.unet_parts.encoder import Encoder
-from unet_variants.models.unet_parts.decoder import Decoder
+from unet_variants.models.unet_components.components import SegmentationHead
+from unet_variants.models.unet_components.encoder import Encoder
+from unet_variants.models.unet_components.decoder import Decoder
 
 class UNet(Module):
     def __init__(self, config):
