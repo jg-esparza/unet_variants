@@ -1,7 +1,7 @@
 
 # configs/config.yaml
 defaults:
-  - model: unet
+  - model: resnet_unet
   - data: isic2017
   - inspect: default
   - logging: mlflow

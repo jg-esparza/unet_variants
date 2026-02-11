@@ -5,38 +5,6 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 
-
-class SegmentationDatasetToTuple(Dataset):
-    def __init__(self, root: str | Path, phase: str, transform=None):
-        """
-        root/
-          train/images, train/masks
-          val/images,   val/masks
-        """
-        root = Path(root)
-        self.image_dir = root / phase / "images"
-        self.mask_dir  = root / phase / "masks"
-        self.transform = transform
-
-        self.image_filenames = sorted([p.name for p in self.image_dir.iterdir() if p.is_file()])
-
-    def __len__(self):
-        return len(self.image_filenames)
-
-    def __getitem__(self, idx):
-        fname = self.image_filenames[idx]
-        img_path = self.image_dir / fname
-        mask_path = self.mask_dir / fname
-
-        image = np.array(Image.open(img_path).convert("RGB"))                  # (H,W,3) uint8
-        mask  = np.expand_dims(np.array(Image.open(mask_path).convert("L")), axis=2)  # (H,W,1) uint8
-
-        if self.transform is not None:
-            image, mask = self.transform((image, mask))
-
-        return image, mask
-
-
 class SegmentationDataset(Dataset):
     def __init__(self, root: str | Path, phase: str = "train", transform=None,
                  return_raw: bool = False, return_paths: bool = False):
@@ -66,9 +34,9 @@ class SegmentationDataset(Dataset):
         return len(self.image_filenames)
 
     def __getitem__(self, idx):
-        fname = self.image_filenames[idx]
-        img_path = self.image_dir / fname
-        mask_path = self.mask_dir / fname
+        file_name = self.image_filenames[idx]
+        img_path = self.image_dir / file_name
+        mask_path = self.mask_dir / file_name
 
         raw_img = np.array(Image.open(img_path).convert("RGB"))  # (H,W,3) uint8
         raw_mask = np.expand_dims(np.array(Image.open(mask_path).convert("L")), axis=2)  # (H,W,1) uint8

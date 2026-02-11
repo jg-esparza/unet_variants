@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import torch
 
 from unet_variants.data.prepare import ensure_extracted_dataset
-from unet_variants.data.dataset import SegmentationDataset, SegmentationDatasetToTuple
+from unet_variants.data.dataset import SegmentationDataset
 from unet_variants.data.transforms import build_transforms
 
 
@@ -14,9 +14,6 @@ def build_dataloaders(cfg):
 
     train_tf = build_transforms(cfg, phase="train")
     val_tf   = build_transforms(cfg, phase="val")
-
-    # train_ds = SegmentationDatasetToTuple(root=root, phase="train", transform=train_tf)
-    # val_ds   = SegmentationDatasetToTuple(root=root, phase="val",   transform=val_tf)
 
     train_ds = SegmentationDataset(
         root=root,

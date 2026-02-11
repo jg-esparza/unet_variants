@@ -4,6 +4,7 @@ from typing import Callable, Dict, Any
 import torch.nn as nn
 
 from unet_variants.models.unet import UNet
+from unet_variants.models.resnet_unet import ResNetUnet
 
 class ModelFactory:
     """
@@ -12,8 +13,7 @@ class ModelFactory:
     """
     _BUILDERS: Dict[str, Callable[[Any], nn.Module]] = {
         "unet": lambda cfg: UNet(cfg),
-        # "unetr": lambda cfg: UNETR(cfg),
-        # "mamba_unet": lambda cfg: MambaUNet(cfg),
+        "resnet_unet": lambda cfg: ResNetUnet(cfg)
     }
 
     @classmethod
