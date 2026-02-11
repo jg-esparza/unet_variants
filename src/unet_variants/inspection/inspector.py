@@ -59,7 +59,7 @@ class ModelInspector:
     - ONNX export + view (no logging here yet)
     """
 
-    def __init__(self, model: nn.Module, config: DictConfig = None, device: Union[str, torch.device] = "cpu"):
+    def __init__(self, model: nn.Module, config: DictConfig, device: Union[str, torch.device] = "cpu"):
         self.device = torch.device(device)
         self.model = model.to(self.device).eval()
         b = int(config.batch_size)
@@ -73,7 +73,7 @@ class ModelInspector:
         trainable = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         return int(total), int(trainable)
 
-    def summary(
+    def model_summary(
         self,
         verbose: int = 0,
         print_summary: bool = True,
@@ -94,7 +94,7 @@ class ModelInspector:
         return text
 
     @torch.no_grad()
-    def flops(
+    def model_flops(
         self,
         print_report: bool = True,
         save_report: bool = False,
@@ -157,13 +157,13 @@ class ModelInspector:
             )
             summary_path = save_summary_path
         """
-        self.summary(
+        self.model_summary(
             print_summary=print_summary,
             save_summary=export_summary,
             save_path=save_summary_path,
         )
 
-        flops_result = self.flops(
+        flops_result = self.model_flops(
             print_report=print_flops_report,
             save_report=export_flops_report,
             save_txt=save_flops_txt,
