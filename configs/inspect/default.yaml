@@ -2,15 +2,17 @@
 name: inspect
 
 batch_size: 1
+in_channels: ${data.in_channels}
+image_size: ${data.image_size}
 export_path: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${now:%H-%M-%S}_${model.name}_${data.name}
 torchinfo_summary:
     print_summary: True
-    save_summary: True
+    export_summary: False
     export_path: ${inspect.export_path}/summary_${model.name}.txt
 
 flops_thop:
   print_report: True
-  save_report: True
+  export_report: False
   save_txt: ${inspect.export_path}/flops_${model.name}.txt
   save_json: ${inspect.export_path}/flops_${model.name}.json
 

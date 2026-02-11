@@ -1,0 +1,14 @@
+name: resnet_unet
+
+# I/O
+in_channels: ${data.in_channels}
+out_channels: ${task.out_channels}
+
+encoder: ResNet34
+depth: 0
+drop_rate: 0
+
+n_skip: 4
+hidden_layers: 512
+decoder_channels: [256, 128, 64, 16]
+skip_channels: [256, 128, 64, 64]

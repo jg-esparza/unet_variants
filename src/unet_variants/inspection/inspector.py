@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Tuple, Union, Dict
+from typing import Optional, Tuple, Union
+
+from omegaconf import DictConfig
 
 import torch
 from torch import nn
@@ -57,9 +59,14 @@ class ModelInspector:
     - ONNX export + view (no logging here yet)
     """
 
-    def __init__(self, model: nn.Module, device: Union[str, torch.device] = "cpu"):
+    def __init__(self, model: nn.Module, config: DictConfig = None, device: Union[str, torch.device] = "cpu"):
         self.device = torch.device(device)
         self.model = model.to(self.device).eval()
+        b = int(config.batch_size)
+        c = int(config.in_channels)  # recommended: interpolate from data.in_channels
+        h = int(config.image_size)
+        w = int(config.image_size)
+        self.input_size = (b, c, h, w)
 
     def count_params(self) -> Tuple[int, int]:
         total = sum(p.numel() for p in self.model.parameters())
@@ -68,7 +75,6 @@ class ModelInspector:
 
     def summary(
         self,
-        input_size: Tuple[int, int, int, int],
         verbose: int = 0,
         print_summary: bool = True,
         save_summary: bool = False,
@@ -77,20 +83,19 @@ class ModelInspector:
         """
         Generate torchinfo summary as string, optionally print and/or save to file.
         """
-        text = get_torchinfo_summary(self.model, input_size, self.device, verbose=verbose)
+        text = get_torchinfo_summary(self.model, self.input_size, self.device, verbose=verbose)
 
         if print_summary:
             print("\n=== torchinfo summary ===")
             print(text)
 
         if save_summary is not False:
-            save_torchinfo_summary(self.model, input_size, self.device, path=save_path, verbose=verbose)
+            save_torchinfo_summary(self.model, self.input_size, self.device, path=save_path, verbose=verbose)
         return text
 
     @torch.no_grad()
     def flops(
         self,
-        input_size: Tuple[int, int, int, int],
         print_report: bool = True,
         save_report: bool = False,
         save_txt: Optional[str] = None,
@@ -101,7 +106,7 @@ class ModelInspector:
         """
         result = estimate_flops_thop(
             model=self.model,
-            input_size=input_size,
+            input_size=self.input_size,
             device=self.device
         )
 
@@ -113,25 +118,24 @@ class ModelInspector:
         return result
 
     @torch.no_grad()
-    def export_onnx(self, export_path: str, input_size: Tuple[int, int, int, int], opset: int = 17) -> str:
+    def export_onnx(self, export_path: str, opset: int = 17) -> str:
         """
         Export ONNX graph. (Logging as MLflow artifact can be added in the runner later.)
         """
-        return export_onnx_graph(self.model, export_path, input_size, self.device, opset=opset)
+        return export_onnx_graph(self.model, export_path, self.input_size, self.device, opset=opset)
 
-    def view_onnx(self, onnx_path: str, port: int = 8081, host: str = "127.0.0.1", browse: bool = True) -> None:
+    @staticmethod
+    def view_onnx(onnx_path: str, port: int = 8081, host: str = "127.0.0.1", browse: bool = True) -> None:
         view_onnx_graph(onnx_path=onnx_path, host=host, port=port, browse=browse)
 
     def report(
         self,
-        input_size: Tuple[int, int, int, int],
         export_onnx_path: Optional[str] = None,
         print_summary: bool = True,
-        save_summary: bool = False,
-        verbose: int = 0,
+        export_summary: bool = False,
         save_summary_path: Optional[str] = None,
         print_flops_report: bool = True,
-        save_flops_report: bool = False,
+        export_flops_report: bool = False,
         save_flops_txt: Optional[str] = None,
         save_flops_json: Optional[str] = None,
     ) -> InspectionReport:
@@ -154,24 +158,21 @@ class ModelInspector:
             summary_path = save_summary_path
         """
         self.summary(
-            input_size=input_size,
-            verbose=verbose,
             print_summary=print_summary,
-            save_summary=save_summary,
+            save_summary=export_summary,
             save_path=save_summary_path,
         )
 
         flops_result = self.flops(
-            input_size=input_size,
             print_report=print_flops_report,
-            save_report=save_flops_report,
+            save_report=export_flops_report,
             save_txt=save_flops_txt,
             save_json=save_flops_json,
         )
 
         onnx_path = None
         if export_onnx_path is not None:
-            onnx_path = self.export_onnx(export_onnx_path, input_size=input_size)
+            onnx_path = self.export_onnx(export_onnx_path)
 
         return InspectionReport(
             total_params=total,
