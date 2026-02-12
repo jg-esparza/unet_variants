@@ -86,68 +86,81 @@ Currently supported:
 ```markdown
 
 unet_variants/
-├─ data/                              # Data storage
+├─ data/                               # Data storage
 │  └─ datasets
 ├─ configs/
-│  ├─ config.yaml                     # Top-level Hydra config; composes model/data/train/inspect/logging/task/paths
-│  ├─ data/
-│  │  └─ isic.yaml                    # Example dataset config (paths, input size, normalization)
-│  ├─ eval/
-│  │  └─ default.yaml                 # Common evaluation parameters
-│  ├─ inspect/
-│  │  └─ default.yaml                 # Common model inspection parameters
-│  ├─ logging/
-│  │   └─ mlflow.yaml                 # Tracking URI, experiment name, run naming
-│  ├─ model/
-│  │   └─ unet.yaml                   # U-Net config
-│  ├─ task/
-│  │   └─ default.yaml                # Segmentation task (Binary, output channels)  
-│  └─ train/
-│  │   └─ default.yaml                # Common training params (optimizer, scheduler, loss, batch_size)
+│   ├─ config.yaml                     # Top-level Hydra config; composes model/data/train/inspect/logging/task/paths
+│   ├─ data/
+│   │   └─ isic.yaml                   # Example dataset config (paths, input size, normalization)
+│   ├─ eval/
+│   │   └─ default.yaml                # Common evaluation parameters
+│   ├─ inspect/
+│   │   └─ default.yaml                # Common model inspection parameters
+│   ├─ logging/
+│   │   └─ mlflow.yaml                 # Tracking URI, experiment name, run naming
+│   ├─ model/
+│   │   ├─ unet.yaml                   # U-Net config
+│   │   └─ resnet_unet.yaml            # U-Net + ResNet encoder config
+│   ├─ task/
+│   │   └─ binary.yaml                 # Segmentation task (Binary, output channels)  
+│   └─ train/
+│   │   └─ default.yaml                # Common training params (optimizer, scheduler, loss, batch_size)
 ├─ src/
-│  ├─ unet_variants/
-│  │  ├─ data/                        # Dataset modules (loaders, transforms, preparation)
-│  │  │  ├── dataset.py
-│  │  │  ├── loaders.py
-│  │  │  ├── transforms.py
-│  │  │  └── prepare.py
-│  │  ├─ engine/                      # Core training & evaluation logic
-│  │  │  ├── trainer.py
-│  │  │  ├── evaluator.py
-│  │  │  ├── inference.py
-│  │  │  └── checkpoint.py   
-│  ├── inspection/                     # Introspection and profiling utilities
-│  │  │   ├── flops.py
-│  │  │   ├── summary.py
-│  │  │   ├── viz.py
-│  │  │   ├── inspector.py
-│  │  │   └── onnx.py
-│  │  ├── losses/                      # Loss functions (BCE+Dice, etc.)
-│  │  │   └── bce_dice.py
-│  │  ├── metrics/                     # Metrics for segmentation evaluation
-│  │  │   └── segmentation.py
-│  │  ├── runners/                     # Experiment runner (Hydra + MLflow)
-│  │  │   └── experiment.py
-│  │  ├── utils/                       # General-purpose utilities
-│  │  │   ├── bootstrap.py
-│  │  │   ├── device.py
-│  │  │   ├── io.py
-│  │  │   ├── logging.py
-│  │  │   └── seeds.py
-│  │  ├── models/                      # All U-Net variants live here
-│  │  │   ├── components/              # Reusable blocks (conv blocks, attention, upsample)
-│  │  │   ├── unet/                    # Baseline U-Net implementation
-│  │  │   └── factory.py               # 🔑 Model registry/factory (maps string keys → model classes)
+│   ├─ unet_variants/
+│   │   ├── __init__.py
+│   │   ├─ data/                       # Dataset modules (loaders, transforms, preparation)
+│   │   │   ├── __init__.py
+│   │   │   ├── dataset.py
+│   │   │   ├── loaders.py
+│   │   │   ├── transforms.py
+│   │   │   └── prepare.py
+│   │   ├─ engine/                     # Core training & evaluation logic
+│   │   │   ├── __init__.py
+│   │   │   ├── evaluate.py
+│   │   │   ├── train.py
+│   │   │   └── validate.py   
+│   │   ├── experiments/               # Experiment handling
+│   │   │   ├── __init__.py
+│   │   │   └── experiment.py
+│   │   ├── inspection/                # Introspection and profiling utilities
+│   │   │   ├── __init__.py
+│   │   │   ├── flops.py
+│   │   │   ├── summary.py
+│   │   │   ├── viz.py
+│   │   │   ├── inspector.py
+│   │   │   └── onnx.py
+│   │   ├── loss/                      # Loss functions (BCE+Dice, etc.)
+│   │   │   ├── __init__.py
+│   │   │   └── factory.py
+│   │   ├── optim/                     # Optimization strategy
+│   │   │   ├── __init__.py
+│   │   │   ├── build_optim.py
+│   │   │   └── build_scheduler.py
+│   │   ├── metrics/                   # Metrics for segmentation evaluation
+│   │   │   ├── __init__.py
+│   │   │   └── segmentation.py
+│   │   ├── utils/                     # General-purpose utilities
+│   │   │   ├── bootstrap.py
+│   │   │   ├── device.py
+│   │   │   ├── io.py
+│   │   │   ├── logging.py
+│   │   │   ├── registries.py
+│   │   │   └── seed.py
+│   │   ├── models/                    # All U-Net variants live here
+│   │   │   ├── components/            # Reusable blocks (conv blocks, attention, upsample)
+│   │   │   ├── unet/                  # Baseline U-Net implementation
+│   │   │   ├── resnet_unet/           # U-Net with ResNet encoder
+│   │   │   └── factory.py             # 🔑 Model registry/factory (maps string keys → model classes)
 ├─ scripts/
-│  ├─ run_train.sh
-│  └─ run_eval.sh
+│  ├─ model_inspect.py
+│  └─ run_experiment.py
 ├─ runs/
 │  ├─ hydraruns                       
 │  └─ mlruns
 ├─ .gitignore
 ├─ README.md
 ├─ LICENSE
-└─ pyproject.toml                 # Packaging + minimal dependencies
+└─ pyproject.toml                       # Packaging + minimal dependencies
 ```
 
 ## ⚙️ Installation
