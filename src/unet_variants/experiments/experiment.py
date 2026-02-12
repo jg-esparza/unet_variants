@@ -7,6 +7,9 @@ import torch
 
 from unet_variants.models.factory import ModelFactory
 from unet_variants.inspection.inspector import ModelInspector
+from unet_variants.loss.factory import LossFactory
+from unet_variants.optim.build_optim import OptimizerFactory
+from unet_variants.optim.build_scheduler import SchedulerFactory
 from unet_variants.data.loaders import build_dataloaders
 
 class ExperimentManager:
@@ -46,63 +49,21 @@ class ExperimentManager:
         # set_all_seeds(self.cfg.get("seed", 42))
 
         # Model
-        self.model = ModelFactory.create(self.cfg.model.name, self.cfg.model)
+        self.model = ModelFactory.build(cfg=self.cfg.model)
         self.model.to(self.device)
 
+        self.criterion = LossFactory.build(cfg=self.cfg.train.loss)
+        self.optimizer = OptimizerFactory.build(model=self.model, cfg=self.cfg.train.optim)
+        self.scheduler = SchedulerFactory.build(optimizer=self.optimizer, cfg=self.cfg.train.scheduler)
+
         # Inspector
+
         self.inspector = ModelInspector(model=self.model, config=self.cfg.inspect, device=self.device)
-
-
 
         # Data
         self.train_loader, self.val_loader = build_dataloaders(self.cfg)
-
 
     # ---------- Public API ----------
 
     def run(self):
         print("Starting experiment")
-
-    def resume(self):
-        """
-        Manual resume: load checkpoint and return self (chainable).
-        """
-        # self.ckpt.try_resume(self.model, self.optimizer, self.scheduler, checkpoint_path, device=self.device)
-        print("Resuming from checkpoint")
-        return self
-
-    # ---- Inspector convenience methods (delegate to ModelInspector) ----
-
-    def model_summary(self):
-        print("Summary")
-
-    def model_flops(self):
-        print("Flops")
-
-
-    def export_onnx(self):
-        print("Exporting onnx model")
-
-    def view_inspection(self):
-        """Console-friendly structure printout via inspector."""
-        print("Inspection")
-
-    def log_artifact(self):
-       print("Logging artifact")
-
-    # ---------- Internals ----------
-
-    def _select_device(self):
-        print("Select device")
-
-    def _build_optim(self):
-        print("Building optim")
-
-    def _build_scheduler(self):
-        print("Building scheduler")
-
-    def _resolve_exp_name(self):
-        print("Resolve experiment name")
-
-    def _run_inspector(self):
-        print("Run inspector")

@@ -1,6 +1,5 @@
 #configs/train/default.yaml
 epochs: 2
-lr: 0.0003
 batch_size: 4
 num_workers: 4
 amp: true
@@ -8,7 +7,26 @@ amp: true
 # loss configuration (expand later)
 loss:
   name: bce_dice
-  bce_weight: 0.5
+  control:
+    wb: 1
+    wd: 1
+
+optim:
+  name: adamw
+  params:
+    lr: 0.0003
+    beta1: 0.9
+    beta2: 0.999
+    eps: 1e-8
+    weight_decay: 0.02
+    amsgrad: False
+
+scheduler:
+  name: cosine
+  params:
+    t_max: 50
+    eta_min: 0.00001
+    last_epoch: -1
 
 # saving
 # output_dir: ${hydra:runtime.output_dir}

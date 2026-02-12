@@ -6,6 +6,8 @@ import torch.nn as nn
 from unet_variants.models.unet import UNet
 from unet_variants.models.resnet_unet import ResNetUnet
 
+from unet_variants.utils.registries import review_registry_availability, validate_instance
+
 class ModelFactory:
     """
     Factory to build supported models.
@@ -17,13 +19,8 @@ class ModelFactory:
     }
 
     @classmethod
-    def create(cls, name: str, cfg: Any) -> nn.Module:
-        key = name.lower().strip()
-        if key not in cls._BUILDERS:
-            available = ", ".join(sorted(cls._BUILDERS.keys()))
-            raise ValueError(f"Unknown model '{name}'. Available: [{available}]")
-
+    def build(cls, cfg: Any) -> nn.Module:
+        key = review_registry_availability(name=cfg.name, registry=cls._BUILDERS, kind="model")
         model = cls._BUILDERS[key](cfg)
-        if not isinstance(model, nn.Module):
-            raise TypeError(f"Builder for '{name}' did not return a torch.nn.Module")
+        validate_instance(name=key, obj=model, expected_type=nn.Module)
         return model
