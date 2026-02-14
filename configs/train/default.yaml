@@ -1,8 +1,9 @@
 #configs/train/default.yaml
-epochs: 2
-batch_size: 4
+epochs: 3
+batch_size: 16
 num_workers: 4
-amp: true
+amp: false
+seed: 42
 
 # loss configuration (expand later)
 loss:

@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import random
 import numpy as np
+
+from omegaconf import DictConfig
+
 import torch
 import torchvision.transforms.functional as F
 
@@ -140,7 +143,7 @@ def _get_vm_stats(cfg, phase: str):
     return float(stats.mean), float(stats.std)
 
 
-def build_transforms(cfg, phase: str):
+def build_transforms(cfg:DictConfig, phase: str):
     """
     Returns a paired transform pipeline according to cfg.data.norm.mode:
       - vm_mamba: VmMambaNormalization (numpy) -> ToTensorNoScale -> resize -> aug

@@ -2,10 +2,47 @@
 backend: mlflow
 enable: true
 
-tracking_uri: file:./runs/mlruns
-experiment_name: unet_variants
-run_name: ${model.name}_${data.name}_${now:%Y%m%d_%H%M%S}
+mlruns_path: ${paths.runs_dir}/mlruns
+temp_path: ${logging.mlruns_path}/temp
+tracking_uri: file:${logging.mlruns_path}
+experiment_name: seg_${task.key}_${data.name}_${data.image_size}
+run_name: ${model.name}_bs${train.batch_size}_lr{train.optim.params.lr}_${now:%Y%m%d_%H%M%S}
+
+
+system_metrics:
+  sampling_interval: 0
+  samples_before_logging: 0
 
 tags:
   framework: pytorch
   task: ${task.name}
+  dataset: ${data.name}
+  image_size: ${data.image_size}
+  model_family: ${model.family}
+  encoder: ${model.encoder}
+  loss_type: ${train.loss.name}
+  seed: ${train.seed}
+  total_params: None
+  # augmentation: ${}
+
+
+params:
+  model: ${model.name}
+  loss_fn: ${train.loss.name}
+  optimizer: ${train.optim.name}
+  lr: ${train.optim.params.lr}
+  weight_decay: ${train.optim.params.weight_decay}
+  scheduler: ${train.scheduler.name}
+  batch_size: ${train.batch_size}
+  image_size: ${data.image_size}
+  epochs: ${train.epochs}
+  mixed_precision: ${train.amp}
+  trainable_params: None
+  flops: None
+  macs: None
+  # augmentation: ${}
+
+save_model_summary: True
+save_flops_report: True
+export_onnx: True
+save_model: False

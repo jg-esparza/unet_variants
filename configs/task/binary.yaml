@@ -1,2 +1,4 @@
 name: binary_segmentation
+key: bin
 out_channels: 1
+

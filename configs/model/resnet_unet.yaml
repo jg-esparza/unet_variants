@@ -1,4 +1,5 @@
 name: resnet_unet
+family: CNN
 
 # I/O
 in_channels: ${data.in_channels}
