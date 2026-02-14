@@ -18,6 +18,6 @@ flops_thop:
 
 export_onnx:
   enable: True
-  path: ${paths.onnx_dir}/${model.name}_${data.name}.onnx
+  path: ${paths.onnx_dir}/${model.name}_${data.in_channels}_${data.image_size}.onnx
   view: False
   port: 8081

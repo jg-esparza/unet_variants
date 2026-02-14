@@ -1,9 +1,11 @@
-
 from __future__ import annotations
 
 from omegaconf import DictConfig
 
+import copy
 import torch
+
+from tqdm import tqdm
 
 from unet_variants.models.factory import ModelFactory
 from unet_variants.inspection.inspector import ModelInspector
@@ -52,12 +54,14 @@ class ExperimentManager:
         self.model = ModelFactory.build(cfg=self.cfg.model)
         self.model.to(self.device)
 
+        # Loss Function
         self.criterion = LossFactory.build(cfg=self.cfg.train.loss)
+
+        # Optimization strategy
         self.optimizer = OptimizerFactory.build(model=self.model, cfg=self.cfg.train.optim)
         self.scheduler = SchedulerFactory.build(optimizer=self.optimizer, cfg=self.cfg.train.scheduler)
 
         # Inspector
-
         self.inspector = ModelInspector(model=self.model, config=self.cfg.inspect, device=self.device)
 
         # Data
@@ -65,5 +69,28 @@ class ExperimentManager:
 
     # ---------- Public API ----------
 
-    def run(self):
-        print("Starting experiment")
+    def _setup_metrics(self):
+        """self.metrics = {"min_loss": float("inf"),
+                        "min_epoch": 1,
+                        "train_loss": 0,
+                        "val_loss": 0}
+                        """
+        self.train_loss = 0
+        self.val_loss = 0
+        self.min_loss = float("inf")
+        self.min_epoch = 1
+
+    def model_summary(self):
+        self.inspector.model_summary(print_summary = True,
+                                     save_summary = False,
+                                     save_path= None)
+
+    def model_flops_thop(self):
+        self.inspector.model_flops(print_report = True,
+                                   save_report = False,
+                                   save_txt = None,
+                                   save_json = None)
+
+    def model_onnx(self):
+        onnx_path = self.inspector.export_onnx(export_path=self.cfg.inspect.export_onnx.path)
+        self.inspector.view_onnx(onnx_path=onnx_path, port= 8081, host= "127.0.0.1", browse= True)
