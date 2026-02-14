@@ -1,4 +1,6 @@
 from typing import Callable, Dict, Any
+from omegaconf import DictConfig
+
 import torch
 from torch import nn
 
@@ -21,7 +23,7 @@ class OptimizerFactory:
         return _wrap
 
     @classmethod
-    def build(cls, model: nn.Module,cfg: Any) -> torch.optim.Optimizer:
+    def build(cls, model: nn.Module, cfg: DictConfig) -> torch.optim.Optimizer:
         key = review_registry_availability(name=cfg.name, registry=cls._BUILDERS, kind="optimizer")
         optimizer = cls._BUILDERS[key](model, cfg.params)
         validate_instance(name=key, obj=optimizer, expected_type=torch.optim.Optimizer)

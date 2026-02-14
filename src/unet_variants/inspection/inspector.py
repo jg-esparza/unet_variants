@@ -130,14 +130,15 @@ class ModelInspector:
 
     def report(
         self,
-        export_onnx_path: Optional[str] = None,
-        print_summary: bool = True,
+        print_summary: bool = False,
         export_summary: bool = False,
         save_summary_path: Optional[str] = None,
         print_flops_report: bool = True,
         export_flops_report: bool = False,
         save_flops_txt: Optional[str] = None,
         save_flops_json: Optional[str] = None,
+        export_onnx: bool = False,
+        export_onnx_path: Optional[str] = None,
     ) -> InspectionReport:
         """
         Run a one-shot inspection pass and return a report.
@@ -171,7 +172,7 @@ class ModelInspector:
         )
 
         onnx_path = None
-        if export_onnx_path is not None:
+        if export_onnx:
             onnx_path = self.export_onnx(export_onnx_path)
 
         return InspectionReport(

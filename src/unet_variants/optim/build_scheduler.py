@@ -1,5 +1,7 @@
 from typing import Callable, Dict, Any
 
+from omegaconf import DictConfig
+
 import torch
 import torch.optim as optim
 
@@ -20,7 +22,7 @@ class SchedulerFactory:
         return _wrap
 
     @classmethod
-    def build(cls, optimizer: torch.optim.Optimizer, cfg: Any) -> torch.optim.lr_scheduler:
+    def build(cls, optimizer: torch.optim.Optimizer, cfg: DictConfig) -> torch.optim.lr_scheduler:
         key = review_registry_availability(name=cfg.name, registry=cls._BUILDERS, kind="scheduler")
         scheduler = cls._BUILDERS[key](optimizer, cfg.params)
         return scheduler

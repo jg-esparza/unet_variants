@@ -1,6 +1,8 @@
 
 from __future__ import annotations
 
+from omegaconf import DictConfig
+
 from torch.utils.data import DataLoader
 import torch
 
@@ -9,7 +11,7 @@ from unet_variants.data.dataset import SegmentationDataset
 from unet_variants.data.transforms import build_transforms
 
 
-def build_dataloaders(cfg):
+def build_dataloaders(cfg: DictConfig):
     root = ensure_extracted_dataset(cfg)
 
     train_tf = build_transforms(cfg, phase="train")

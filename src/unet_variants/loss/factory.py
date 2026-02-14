@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Callable, Dict, Any
 import torch.nn as nn
+from omegaconf import DictConfig
 
 from unet_variants.utils.registries import review_registry_availability, validate_instance
 
@@ -20,7 +21,7 @@ class LossFactory:
         return _wrap
 
     @classmethod
-    def build(cls, cfg: Any) -> nn.Module:
+    def build(cls, cfg: DictConfig) -> nn.Module:
         key = review_registry_availability(name=cfg.name, registry=cls._BUILDERS, kind="loss")
         model = cls._BUILDERS[key](cfg.control)
         validate_instance(name=key, obj=model, expected_type=nn.Module)

@@ -4,10 +4,12 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+from omegaconf import DictConfig
+
 from unet_variants.utils.io import ensure_dir, is_non_empty_dir, extract_zip
 
 
-def ensure_extracted_dataset(cfg) -> Path:
+def ensure_extracted_dataset(cfg:DictConfig) -> Path:
     """
     Ensure dataset root exists and contains extracted files.
 
