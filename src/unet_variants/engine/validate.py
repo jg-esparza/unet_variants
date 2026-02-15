@@ -18,4 +18,4 @@ def validate_one_epoch(model: torch.nn.Module,
             loss = criterion(outputs, masks)
             val_loss += loss.item()
     val_loss /= len(val_loader)
-    return val_loss
+    return {"val/loss": val_loss}

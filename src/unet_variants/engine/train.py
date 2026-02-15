@@ -12,7 +12,6 @@ def train_one_epoch(model: torch.nn.Module,
     """
     model.train()
     train_loss = 0
-
     for batch in train_loader:
         images, masks = batch["image"].to(device), batch["mask"].to(device)
         optimizer.zero_grad()
@@ -22,5 +21,4 @@ def train_one_epoch(model: torch.nn.Module,
         optimizer.step()
         train_loss += loss.item()
     train_loss /= len(train_loader)
-    return train_loss
-
+    return {"train/loss": train_loss}

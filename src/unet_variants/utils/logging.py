@@ -80,7 +80,7 @@ class MLFlowLogger:
         )
         self.run_id = self.active_run.info.run_id
         self._setup_system_metrics_sampling()
-        self._set_artifact_location()
+        self.set_artifact_location()
         return self
 
     def end_run(self, status: Literal["FINISHED", "FAILED", "KILLED"] = "FINISHED") -> None:
@@ -89,7 +89,7 @@ class MLFlowLogger:
             mlflow.end_run(status=status)
             self.active_run = None
 
-    def _set_artifact_location(self) -> None:
+    def set_artifact_location(self) -> None:
         self.artifact_location = os.path.join(self.cfg.mlruns_path, self.experiment_id, self.run_id, "artifacts")
 
     def artifact_path(self, file: str) -> os.path:
