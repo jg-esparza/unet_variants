@@ -56,45 +56,44 @@ class ExperimentManager:
 
         # Store config
         self.cfg = config
+        self._build_components()
+        self._prepare_training_state()
+        # Metrics
+        self.best_val_loss = float("inf")
+        self.best_epoch = 1
 
+    # ---------- Public API ----------
+
+    # ---------- Build / Prepare ----------
+
+    def _build_components(self) -> None:
+        """Build model, loss, optimizer, scheduler, inspector, dataloaders, device."""
         # Device
         self.device = self._select_device()
-
         # Logging
         self.logger = MLFlowLogger(self.cfg.logging)
-
         # Seed
         # set_all_seeds(self.cfg.get("seed", 42))
-
         # Model
         self.model = ModelFactory.build(cfg=self.cfg.model)
         self.model.to(self.device)
-
         # Loss Function
         self.criterion = LossFactory.build(cfg=self.cfg.train.loss)
-
         # Optimization strategy
         self.optimizer = OptimizerFactory.build(model=self.model, cfg=self.cfg.train.optim)
         self.scheduler = SchedulerFactory.build(optimizer=self.optimizer, cfg=self.cfg.train.scheduler)
-
         # Inspector
         self.inspector = ModelInspector(model=self.model, config=self.cfg.inspect, device=self.device)
 
         # Data
         self.train_loader, self.val_loader = build_dataloaders(self.cfg)
 
-        # Training
-        self.best_model_wts = copy.deepcopy(self.model.state_dict())
+    def _prepare_training_state(self) -> None:
+        """Initialize counters/metrics/seed and best weights."""
+        # self._set_all_seeds(int(getattr(self.cfg.train, "seed", 42)))
         self.start_epoch = 1
-        self.max_epochs = self.cfg.train.epochs
-
-        # Metrics
-        self.train_loss = 0
-        self.val_loss = 0
-        self.min_loss = float("inf")
-        self.min_epoch = 1
-
-    # ---------- Public API ----------
+        self.num_epochs = self.cfg.train.epochs
+        self.best_state_dict = copy.deepcopy(self.model.state_dict())
 
     def model_summary(self) -> None:
         """
@@ -104,7 +103,7 @@ class ExperimentManager:
                                      save_summary = False,
                                      save_path= None)
 
-    def model_flops_thop(self) -> None:
+    def model_flops(self) -> None:
         """
         Print a FLOPs/MACs report to stdout.
         """
@@ -128,7 +127,7 @@ class ExperimentManager:
         """
         self.logger.start_run()
         print("Starting new run {}".format(self.logger.run_id))
-        self._log_run_info()
+        self._log_run_metadata()
         self._run_training_loop()
         self.logger.end_run()
 
@@ -144,9 +143,9 @@ class ExperimentManager:
         self.logger.run_id=run_id
         self.logger.set_artifact_location()
         # Log model stats/flops/onnx for this run's artifacts (optional)
-        self._report_for_current_run()
+        self._generate_model_report()
         # Load state from checkpoint
-        self.load_checkpoint()
+        self._load_checkpoint()
         # Continue the run under the same MLflow run_id
         self.logger.start_run(run_id=run_id)
         self._run_training_loop()
@@ -168,7 +167,7 @@ class ExperimentManager:
         - scheduler step
         - logging + checkpoints + best - weights tracking
         """
-        for epoch in tqdm(range(self.start_epoch, self.max_epochs + 1)):
+        for epoch in tqdm(range(self.start_epoch, self.num_epochs + 1)):
             torch.cuda.empty_cache()
             start_t = time.time()
             # ---- Train ----
@@ -181,20 +180,20 @@ class ExperimentManager:
             if isinstance(self.logger.active_run, ActiveRun):
                 self.log_metrics(epoch, train_metrics, val_metrics, start_t)
             # ---- Checkpoints ----
-            self.save_checkpoint(epoch)
-            self.save_weights_if_best_loss(epoch)
+            self._save_checkpoint(epoch)
+            self._save_weights_if_best_loss(epoch, val_metrics["val/loss"])
 
             if epoch % self.cfg.train.vis_interva == 0:
                 # self.save_sample_prediction(epoch, sample_size=3) still pending, i need some ideas to get images, masks and predictions to show
                 print("Vis")
 
-    def _log_run_info(self) -> None:
+    def _log_run_metadata(self) -> None:
         """Log run-wide information (tags and params)."""
-        self._report_for_current_run()
+        self._generate_model_report()
         self.logger.set_tags(self.logger.tags)
         self.logger.log_params(self.logger.params)
 
-    def _report_for_current_run(self) -> None:
+    def _generate_model_report(self) -> None:
         """
         Produce a model report (summary, FLOPs, and optional ONNX) and
         populate MLflow tags/params accordingly.
@@ -215,7 +214,7 @@ class ExperimentManager:
         self.logger.params["flops"] = report.flops
         self.logger.params["macs"] = report.macs
 
-    def _get_current_lr(self) -> float:
+    def _current_lrs(self) -> float:
         """Return current learning rate from optimizer."""
         return self.optimizer.state_dict()['param_groups'][0]['lr']
 
@@ -234,41 +233,41 @@ class ExperimentManager:
         - lr: first param group LR (for convenience)
         - epoch_time: epoch wall-clock duration (seconds)
         """
-        train_metrics["lr"] = self._get_current_lr()
+        train_metrics["lr"] = self._current_lrs()
         train_metrics["epoch_time"] = self.get_epoch_time(start_t)
         metrics_to_log = {**train_metrics, **val_metrics}
         self.logger.log_metrics(metrics_to_log, epoch)
 
-    def save_weights_if_best_loss(self, epoch: int) -> None:
+    def _save_weights_if_best_loss(self, epoch: int, val_loss: float) -> None:
         """
         If the current validation loss improves the best loss,
         keep a copy of the best model weights.
         """
-        if self.val_loss < self.min_loss:
-            self.min_loss = self.val_loss
-            self.best_model_wts = copy.deepcopy(self.model.state_dict())
-            self.min_epoch = epoch
+        if val_loss < self.best_val_loss:
+            self.best_val_loss = val_loss
+            self.best_state_dict = copy.deepcopy(self.model.state_dict())
+            self.best_epoch = epoch
 
-    def save_checkpoint(self, epoch: int) -> None:
+    def _save_checkpoint(self, epoch: int) -> None:
         """
         Persist a training checkpoint with:
-        - epoch, best_epoch, min_loss
+        - epoch, best_epoch, best_val_loss
         - model/optimizer/scheduler state
         - loss (criterion) object
         - best model weights snapshot
         """
         torch.save({
             "epoch": epoch,
-            "best_epoch": self.min_epoch,
-            "min_loss": self.min_loss,
+            "best_epoch": self.best_epoch,
+            "best_val_loss": self.best_val_loss,
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
             "scheduler_state_dict": self.scheduler.state_dict(),
-            "loss": self.criterion,
-            "best_model_wts": self.best_model_wts,
+            # "loss": self.criterion,
+            "best_state_dict": self.best_state_dict,
             }, self.logger.artifact_path("checkpoint.pth"))
 
-    def load_checkpoint(self):
+    def _load_checkpoint(self):
         """
         Load the latest checkpoint from the logger's artifact path and
         restore training state.
@@ -276,13 +275,13 @@ class ExperimentManager:
         checkpoint = torch.load(self.logger.artifact_path("checkpoint.pth"),
                                 weights_only=False)
         saved_epoch = checkpoint['epoch']
-        self.min_epoch = checkpoint['best_epoch']
-        self.min_loss = checkpoint['min_loss']
+        self.best_epoch = checkpoint['best_epoch']
+        self.best_val_loss = checkpoint['best_val_loss']
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        self.criterion = checkpoint['loss']
-        self.best_model_wts = checkpoint['best_model_wts']
+        # self.criterion = checkpoint['loss']
+        self.best_state_dict = checkpoint['best_state_dict']
         self.start_epoch = saved_epoch + 1
         print(f'Resume training {self.logger.run_id} from checkpoint\n'
-              f'Running from epoch {self.start_epoch} of {self.max_epochs}')
+              f'Running from epoch {self.start_epoch} of {self.num_epochs}')
