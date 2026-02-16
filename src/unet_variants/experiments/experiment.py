@@ -140,6 +140,7 @@ class ExperimentManager:
         run_id : str
             MLflow run ID to resume.
         """
+        # TODO: what if run is already done?
         self.logger.run_id=run_id
         self.logger.set_artifact_location()
         # Log model stats/flops/onnx for this run's artifacts (optional)
@@ -186,6 +187,7 @@ class ExperimentManager:
             if epoch % self.cfg.train.vis_interva == 0:
                 # self.save_sample_prediction(epoch, sample_size=3) still pending, i need some ideas to get images, masks and predictions to show
                 print("Vis")
+        self.save_best_model()
 
     def _log_run_metadata(self) -> None:
         """Log run-wide information (tags and params)."""
@@ -247,6 +249,20 @@ class ExperimentManager:
             self.best_val_loss = val_loss
             self.best_state_dict = copy.deepcopy(self.model.state_dict())
             self.best_epoch = epoch
+
+    def save_best_model(self) -> None:
+        """
+        Save the best-performing model's weights (state_dict) to the current run's
+            artifact directory as ``best_model.pth``.
+
+            Notes
+            -----
+            - This writes *only* the model parameters (no optimizer/scheduler/metadata).
+            - The destination path is resolved via the active MLflow run's artifact root.
+            - Ensure ``self.best_state_dict`` is updated whenever validation improves.
+        """
+        self.model.load_state_dict(self.best_state_dict)
+        torch.save(self.model.state_dict(),  self.logger.artifact_path("best_model.pth"))
 
     def _save_checkpoint(self, epoch: int) -> None:
         """

@@ -37,7 +37,7 @@ class MLFlowLogger:
         if exp is None:
             mlflow.set_experiment(self.experiment_name)
             exp = mlflow.get_experiment_by_name(self.experiment_name)
-
+        self._setup_system_metrics_sampling()
         self.experiment_id = exp.experiment_id
         self.active_run = None
         self.run_id = None
@@ -79,7 +79,6 @@ class MLFlowLogger:
             run_name=self.cfg.run_name
         )
         self.run_id = self.active_run.info.run_id
-        self._setup_system_metrics_sampling()
         self.set_artifact_location()
         return self
 
@@ -90,35 +89,43 @@ class MLFlowLogger:
             self.active_run = None
 
     def set_artifact_location(self) -> None:
+        """
+        Resolve both the MLflow artifact URI and (if possible) a local filesystem path
+        for writing artifacts directly.
+        """
+
+        if self.active_run is None:
+            raise RuntimeError("No active MLflow run. Start a run before setting artifact location.")
         self.artifact_location = os.path.join(self.cfg.mlruns_path, self.experiment_id, self.run_id, "artifacts")
 
-    def artifact_path(self, file: str) -> os.path:
+    def artifact_path(self, file: str) -> str:
+        """Return a *local filesystem* path to a file inside the current run's artifact directory."""
         return os.path.join(self.artifact_location, file)
 
-    # def _create_temp_folder(self) -> None:
-    #     os.makedirs(self.temp_path, exist_ok=True)
-
-    def _setup_system_metrics_sampling(self):
-        """Set the system metrics sampling if installed."""
+    def _setup_system_metrics_sampling(self) -> None:
+        """Configure system metrics sampling, if supported by your MLflow version and config."""
         mlflow.set_system_metrics_sampling_interval(self.cfg.system_metrics.sampling_interval)
         mlflow.set_system_metrics_samples_before_logging(self.cfg.system_metrics.samples_before_logging)
 
     # ---------- Logging helpers ----------
     @staticmethod
     def set_tags(tags) -> None:
+        """Set multiple MLflow tags for the current active run."""
         mlflow.set_tags(tags)
 
     @staticmethod
     def log_params(params: Dict[str, Any]) -> None:
-        # flat = self._flatten_dict(params, parent_key=prefix)
+        """Log multiple parameters to the current active run."""
         mlflow.log_params(params)
 
     @staticmethod
     def log_param(key: str, value: Any) -> None:
+        """Log a single parameter."""
         mlflow.log_param(key, value)
 
     @staticmethod
     def log_metrics(metrics: Dict[str, float], step: Optional[int] = None, prefix: str = "") -> None:
+        """Log one or more metrics."""
         if prefix:
             metrics = {f"{prefix}{k}": v for k, v in metrics.items()}
         mlflow.log_metrics(metrics, step=step)
