@@ -172,15 +172,16 @@ class ExperimentManager:
             # ---- Scheduler ----
             self.scheduler.step()
             # ---- Logging ----
-            if self.logger is not None:
-                self.log_metrics(epoch, train_metrics, val_metrics, start_t)
+            self.log_metrics(epoch, train_metrics, val_metrics, start_t)
             # ---- Checkpoints ----
             self._save_checkpoint(epoch)
+            # ---- Evaluate val loss ----
             self._save_weights_if_best_loss(epoch, val_metrics["val/loss"])
-
+            # ---- Sample images ----
             if epoch % self.cfg.train.vis_interval == 0:
                 # self.save_sample_prediction(epoch, sample_size=3) still pending, i need some ideas to get images, masks and predictions to show
                 print("Vis")
+            # ---- Early Stopper ----
             if self.early_stopper.step(val_metrics["val/loss"]):
                 break
 
@@ -197,7 +198,6 @@ class ExperimentManager:
         Produce a model report (summary, FLOPs, and optional ONNX) and
         populate MLflow tags/params accordingly.
         """
-
         report = self.inspector.report(print_summary=False,
                                        export_summary=self.cfg.logging.save_model_summary,
                                        save_summary_path=self.logger.artifact_path("summary.txt"),

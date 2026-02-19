@@ -31,9 +31,10 @@ scheduler:
 
 
 early_stopping:
-    patience: 10
-    min_delta: 0.0
-    verbose: True
+  enabled: True
+  patience: 10
+  min_delta: 0.0
+  verbose: True
 
 vis_interval: 10
 # saving

@@ -15,6 +15,7 @@ class EarlyStopping:
         self.patience = cfg.patience
         self.min_delta =  float(cfg.min_delta)
         self.verbose = cfg.verbose
+        self.enabled = cfg.enabled
 
         self.best_loss = float("inf")
         self.wait = 0
@@ -24,6 +25,8 @@ class EarlyStopping:
         """
         Update the stopper with the latest validation loss.
         """
+        if self.enabled is False:
+            return False
         # Improvement if current loss is at least `min_delta` lower than best.
         improved = val_loss < (self.best_loss - self.min_delta)
 
