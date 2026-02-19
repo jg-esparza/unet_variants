@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import copy
 import time
 from typing import Dict
 
-from mlflow import ActiveRun
 from omegaconf import DictConfig
 
 import torch
@@ -62,10 +60,7 @@ class ExperimentManager:
         self.best_val_loss = float("inf")
         self.best_epoch = 1
 
-    # ---------- Public API ----------
-
     # ---------- Build / Prepare ----------
-
     def _build_components(self) -> None:
         """Build model, loss, optimizer, scheduler, inspector, dataloaders, device."""
         # Device
@@ -84,7 +79,6 @@ class ExperimentManager:
         self.scheduler = SchedulerFactory.build(optimizer=self.optimizer, cfg=self.cfg.train.scheduler)
         # Inspector
         self.inspector = ModelInspector(model=self.model, config=self.cfg.inspect, device=self.device)
-
         # Data
         self.train_loader, self.val_loader = build_dataloaders(self.cfg)
 
@@ -93,7 +87,8 @@ class ExperimentManager:
         # self._set_all_seeds(int(getattr(self.cfg.train, "seed", 42)))
         self.start_epoch = 1
         self.num_epochs = self.cfg.train.epochs
-        self.best_state_dict = copy.deepcopy(self.model.state_dict())
+
+    # ---------- Public API ----------
 
     def model_summary(self) -> None:
         """
@@ -169,6 +164,7 @@ class ExperimentManager:
         - logging + checkpoints + best - weights tracking
         """
         for epoch in tqdm(range(self.start_epoch, self.num_epochs + 1)):
+            # if torch.cuda.is_available():
             torch.cuda.empty_cache()
             start_t = time.time()
             # ---- Train ----
@@ -178,16 +174,15 @@ class ExperimentManager:
             # ---- Scheduler ----
             self.scheduler.step()
             # ---- Logging ----
-            if isinstance(self.logger.active_run, ActiveRun):
+            if self.logger is not None:
                 self.log_metrics(epoch, train_metrics, val_metrics, start_t)
             # ---- Checkpoints ----
             self._save_checkpoint(epoch)
             self._save_weights_if_best_loss(epoch, val_metrics["val/loss"])
 
-            if epoch % self.cfg.train.vis_interva == 0:
+            if epoch % self.cfg.train.vis_interval == 0:
                 # self.save_sample_prediction(epoch, sample_size=3) still pending, i need some ideas to get images, masks and predictions to show
                 print("Vis")
-        self.save_best_model()
 
     def _log_run_metadata(self) -> None:
         """Log run-wide information (tags and params)."""
@@ -211,10 +206,10 @@ class ExperimentManager:
                                        export_onnx=self.cfg.logging.export_onnx,
                                        export_onnx_path=self.logger.artifact_path("model.onnx")
                                        )
-        self.logger.tags["total_params"] = report.total_params
-        self.logger.params["trainable_params"] = report.trainable_params
-        self.logger.params["flops"] = report.flops
-        self.logger.params["macs"] = report.macs
+        self.logger.tags["total_params"] = int(report.total_params)
+        self.logger.params["trainable_params"] = int(report.trainable_params)
+        self.logger.params["flops"] = float(report.flops)
+        self.logger.params["macs"] = float(report.macs)
 
     def _current_lrs(self) -> float:
         """Return current learning rate from optimizer."""
@@ -247,22 +242,15 @@ class ExperimentManager:
         """
         if val_loss < self.best_val_loss:
             self.best_val_loss = val_loss
-            self.best_state_dict = copy.deepcopy(self.model.state_dict())
             self.best_epoch = epoch
+            self.save_best_model()
 
     def save_best_model(self) -> None:
         """
         Save the best-performing model's weights (state_dict) to the current run's
-            artifact directory as ``best_model.pth``.
-
-            Notes
-            -----
-            - This writes *only* the model parameters (no optimizer/scheduler/metadata).
-            - The destination path is resolved via the active MLflow run's artifact root.
-            - Ensure ``self.best_state_dict`` is updated whenever validation improves.
+            artifact directory as ``best.pth``.
         """
-        self.model.load_state_dict(self.best_state_dict)
-        torch.save(self.model.state_dict(),  self.logger.artifact_path("best_model.pth"))
+        torch.save(self.model.state_dict(),  self.logger.artifact_path("best.pth"))
 
     def _save_checkpoint(self, epoch: int) -> None:
         """
@@ -279,25 +267,22 @@ class ExperimentManager:
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
             "scheduler_state_dict": self.scheduler.state_dict(),
-            # "loss": self.criterion,
-            "best_state_dict": self.best_state_dict,
-            }, self.logger.artifact_path("checkpoint.pth"))
+            }, self.logger.artifact_path("latest.pth"))
 
     def _load_checkpoint(self):
         """
         Load the latest checkpoint from the logger's artifact path and
         restore training state.
         """
-        checkpoint = torch.load(self.logger.artifact_path("checkpoint.pth"),
-                                weights_only=False)
+        # TODO: Try?
+        checkpoint = torch.load(self.logger.artifact_path("latest.pth"),
+                                map_location=torch.device('cpu'))
         saved_epoch = checkpoint['epoch']
         self.best_epoch = checkpoint['best_epoch']
         self.best_val_loss = checkpoint['best_val_loss']
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        # self.criterion = checkpoint['loss']
-        self.best_state_dict = checkpoint['best_state_dict']
         self.start_epoch = saved_epoch + 1
         print(f'Resume training {self.logger.run_id} from checkpoint\n'
               f'Running from epoch {self.start_epoch} of {self.num_epochs}')
