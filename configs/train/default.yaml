@@ -1,7 +1,7 @@
 #configs/train/default.yaml
-epochs: 3
-batch_size: 16
-num_workers: 4
+epochs: 100
+batch_size: 32
+num_workers: 8
 amp: false
 seed: 42
 
@@ -15,7 +15,7 @@ loss:
 optim:
   name: adamw
   params:
-    lr: 0.0003
+    lr: 1e-3
     beta1: 0.9
     beta2: 0.999
     eps: 1e-8
@@ -29,5 +29,12 @@ scheduler:
     eta_min: 0.00001
     last_epoch: -1
 
+
+early_stopping:
+    patience: 10
+    min_delta: 0.0
+    verbose: True
+
+vis_interval: 10
 # saving
 # output_dir: ${hydra:runtime.output_dir}

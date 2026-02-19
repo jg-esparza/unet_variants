@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, Literal
 from omegaconf import DictConfig
 
 import mlflow
+from mlflow.models import infer_signature
 
 class MLFlowLogger:
     """
@@ -93,9 +94,6 @@ class MLFlowLogger:
         Resolve both the MLflow artifact URI and (if possible) a local filesystem path
         for writing artifacts directly.
         """
-
-        if self.active_run is None:
-            raise RuntimeError("No active MLflow run. Start a run before setting artifact location.")
         self.artifact_location = os.path.join(self.cfg.mlruns_path, self.experiment_id, self.run_id, "artifacts")
 
     def artifact_path(self, file: str) -> str:
@@ -104,8 +102,10 @@ class MLFlowLogger:
 
     def _setup_system_metrics_sampling(self) -> None:
         """Configure system metrics sampling, if supported by your MLflow version and config."""
+
         mlflow.set_system_metrics_sampling_interval(self.cfg.system_metrics.sampling_interval)
         mlflow.set_system_metrics_samples_before_logging(self.cfg.system_metrics.samples_before_logging)
+        mlflow.enable_system_metrics_logging()
 
     # ---------- Logging helpers ----------
     @staticmethod
@@ -137,3 +137,18 @@ class MLFlowLogger:
     @staticmethod
     def log_artifacts(local_dir: str, artifact_path: Optional[str] = None) -> None:
         mlflow.log_artifacts(local_dir, artifact_path=artifact_path)
+
+    def log_model(self, model, image):
+        predictions = model(image)
+        image = image.cpu()
+        predictions = predictions.cpu()
+        signature = infer_signature(image.numpy(), predictions.detach().numpy())
+        # To specify pip requirements containing local version labels, please use `conda_env` or `pip_requirements`.
+        #torch version (2.4.1+cu121) and torchvision version (0.19.1+cu121)
+        mlflow.pytorch.log_model(
+            model,
+            signature=signature,
+            input_example=image.numpy(),
+            artifact_path=self.artifact_path("pytorch_model")
+        )
+        print("Model logged!!")

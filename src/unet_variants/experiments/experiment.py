@@ -18,6 +18,7 @@ from unet_variants.data.loaders import build_dataloaders
 from unet_variants.engine.train import train_one_epoch
 from unet_variants.engine.validate import validate_one_epoch
 from unet_variants.utils.logging import MLFlowLogger
+from unet_variants.utils.early_stopping import EarlyStopping
 
 class ExperimentManager:
     """
@@ -72,13 +73,15 @@ class ExperimentManager:
         # Model
         self.model = ModelFactory.build(cfg=self.cfg.model)
         self.model.to(self.device)
+        # Inspector
+        self.inspector = ModelInspector(model=self.model, config=self.cfg.inspect, device=self.device)
         # Loss Function
         self.criterion = LossFactory.build(cfg=self.cfg.train.loss)
         # Optimization strategy
         self.optimizer = OptimizerFactory.build(model=self.model, cfg=self.cfg.train.optim)
         self.scheduler = SchedulerFactory.build(optimizer=self.optimizer, cfg=self.cfg.train.scheduler)
-        # Inspector
-        self.inspector = ModelInspector(model=self.model, config=self.cfg.inspect, device=self.device)
+        # Early Stopper
+        self.early_stopper = EarlyStopping(cfg=self.cfg.train.early_stopping)
         # Data
         self.train_loader, self.val_loader = build_dataloaders(self.cfg)
 
@@ -129,11 +132,6 @@ class ExperimentManager:
     def resume(self, run_id: str) -> None:
         """
         Resume training from the last checkpoint of a prior run.
-
-        Parameters
-        ----------
-        run_id : str
-            MLflow run ID to resume.
         """
         # TODO: what if run is already done?
         self.logger.run_id=run_id
@@ -183,9 +181,13 @@ class ExperimentManager:
             if epoch % self.cfg.train.vis_interval == 0:
                 # self.save_sample_prediction(epoch, sample_size=3) still pending, i need some ideas to get images, masks and predictions to show
                 print("Vis")
+            if self.early_stopper.step(val_metrics["val/loss"]):
+                break
 
     def _log_run_metadata(self) -> None:
-        """Log run-wide information (tags and params)."""
+        """
+        Log run-wide information (tags and params).
+        """
         self._generate_model_report()
         self.logger.set_tags(self.logger.tags)
         self.logger.log_params(self.logger.params)
@@ -212,23 +214,21 @@ class ExperimentManager:
         self.logger.params["macs"] = float(report.macs)
 
     def _current_lrs(self) -> float:
-        """Return current learning rate from optimizer."""
+        """
+        Return current learning rate from optimizer.
+        """
         return self.optimizer.state_dict()['param_groups'][0]['lr']
 
     @staticmethod
     def get_epoch_time(start_t: float) -> float:
-        """Return elapsed seconds since `start_t`."""
+        """
+        Return elapsed seconds since `start_t`.
+        """
         return time.time() - start_t
 
     def log_metrics(self, epoch: int, train_metrics: Dict[str, float], val_metrics: Dict[str, float], start_t: float) -> None:
         """
         Merge and log metrics to MLflow for a given epoch.
-
-        Notes
-        -----
-        Adds:
-        - lr: first param group LR (for convenience)
-        - epoch_time: epoch wall-clock duration (seconds)
         """
         train_metrics["lr"] = self._current_lrs()
         train_metrics["epoch_time"] = self.get_epoch_time(start_t)
@@ -248,7 +248,7 @@ class ExperimentManager:
     def save_best_model(self) -> None:
         """
         Save the best-performing model's weights (state_dict) to the current run's
-            artifact directory as ``best.pth``.
+        artifact directory as ``best.pth``.
         """
         torch.save(self.model.state_dict(),  self.logger.artifact_path("best.pth"))
 
@@ -274,7 +274,6 @@ class ExperimentManager:
         Load the latest checkpoint from the logger's artifact path and
         restore training state.
         """
-        # TODO: Try?
         checkpoint = torch.load(self.logger.artifact_path("latest.pth"),
                                 map_location=torch.device('cpu'))
         saved_epoch = checkpoint['epoch']

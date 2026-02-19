@@ -6,7 +6,7 @@ mlruns_path: ${paths.runs_dir}/mlruns
 temp_path: ${logging.mlruns_path}/temp
 tracking_uri: file:${logging.mlruns_path}
 experiment_name: seg_${task.key}_${data.name}_${data.image_size}
-run_name: ${model.name}_bs${train.batch_size}_lr{train.optim.params.lr}_${now:%Y%m%d_%H%M%S}
+run_name: ${model.name}_bs${train.batch_size}_lr${train.optim.params.lr}_${now:%Y%m%d_%H%M%S}
 
 
 system_metrics:
