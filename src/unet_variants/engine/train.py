@@ -1,3 +1,5 @@
+from typing import Dict
+
 import torch
 from torch.utils.data import DataLoader
 
@@ -6,7 +8,7 @@ def train_one_epoch(model: torch.nn.Module,
                     optimizer: torch.optim.Optimizer,
                     train_loader: torch.utils.data.DataLoader,
                     device:torch.device
-                    ):
+                    ) -> Dict[str, float]:
     """
     Trains the model for one epoch over the dataset.
     """

@@ -1,5 +1,5 @@
 #configs/train/default.yaml
-epochs: 100
+epochs: 5
 batch_size: 32
 num_workers: 8
 amp: false
@@ -37,7 +37,7 @@ early_stopping:
   verbose: True
 
 vis:
-  interval: 1
+  interval: 10
   sample_size: 3
   threshold: True
   mode: "grid"

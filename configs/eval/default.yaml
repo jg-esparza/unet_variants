@@ -1,0 +1,7 @@
+
+task: ${task.key}
+
+threshold: 0.5
+logits: False
+
+verbose: True

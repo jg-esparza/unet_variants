@@ -16,6 +16,8 @@ from unet_variants.optim.build_scheduler import SchedulerFactory
 from unet_variants.data.loaders import build_dataloaders
 from unet_variants.engine.train import train_one_epoch
 from unet_variants.engine.validate import validate_one_epoch
+from unet_variants.engine.evaluate import evaluate
+from unet_variants.metrics.binary import BinarySegmentationMetrics
 from unet_variants.utils.logging import MLFlowLogger
 from unet_variants.utils.early_stopping import EarlyStopping
 from unet_variants.utils.visualization import choose_visualizer
@@ -57,7 +59,7 @@ class ExperimentManager:
         self.cfg = config
         self._build_components()
         self._prepare_training_state()
-        # Metrics
+        # Control
         self.best_val_loss = float("inf")
         self.best_epoch = 1
 
@@ -84,6 +86,8 @@ class ExperimentManager:
         self.early_stopper = EarlyStopping(cfg=self.cfg.train.early_stopping)
         # Data
         self.train_loader, self.val_loader = build_dataloaders(self.cfg)
+        # Segmentation Metrics
+        self.metrics = BinarySegmentationMetrics(cfg=self.cfg.eval)
 
     def _prepare_training_state(self) -> None:
         """Initialize counters/metrics/seed and best weights."""
@@ -130,7 +134,9 @@ class ExperimentManager:
         print("Starting new run {}".format(self.logger.run_id))
         self._log_run_metadata()
         self._run_training_loop()
+        self.evaluate()
         self.logger.end_run()
+
 
     def resume(self, run_id: str) -> None:
         """
@@ -146,6 +152,7 @@ class ExperimentManager:
         # Continue the run under the same MLflow run_id
         self.logger.start_run(run_id=run_id)
         self._run_training_loop()
+        self.evaluate()
         self.logger.end_run()
 
     # ---------- Internal Helpers ----------
@@ -171,7 +178,7 @@ class ExperimentManager:
             # ---- Train ----
             train_metrics = train_one_epoch(self.model, self.criterion, self.optimizer, self.train_loader, self.device)
             # ---- Validate ----
-            val_metrics = validate_one_epoch(self.model, self.criterion, self.val_loader, self.device)
+            val_metrics = validate_one_epoch(self.model, self.criterion, self.val_loader, self.device, self.metrics)
             # ---- Scheduler ----
             self.scheduler.step()
             # ---- Logging ----
@@ -234,6 +241,7 @@ class ExperimentManager:
         """
         train_metrics["lr"] = self._current_lrs()
         train_metrics["epoch_time"] = self.get_epoch_time(start_t)
+        # change this
         metrics_to_log = {**train_metrics, **val_metrics}
         self.logger.log_metrics(metrics_to_log, epoch)
 
@@ -316,3 +324,15 @@ class ExperimentManager:
         artifact_file = f"Sample_{epoch}.png"
         fig = visualizer(subtitle=subtitle, images=images_cpu, masks=masks_cpu, preds=preds_cpu, sample_size=sample_size)
         self.logger.log_figure(fig, artifact_file)
+
+    def evaluate(self):
+        metrics = evaluate(model=self.model, test_loader=self.val_loader, device=self.device, metrics=self.metrics)
+        if self.logger.active_run is not None:
+            self.logger.log_metrics(metrics)
+
+        print("Segmentation Results")
+        print(f'DSC: {metrics["seg/dsc"]:.3f}')
+        print(f'IoU: {metrics["seg/iou"]:.3f}')
+        print(f'Acc: {metrics["seg/acc"]:.3f}')
+        print(f'Sen: {metrics["seg/sen"]:.3f}')
+        print(f'Spe: {metrics["seg/spe"]:.3f}')
