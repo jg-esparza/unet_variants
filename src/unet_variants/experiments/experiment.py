@@ -6,7 +6,6 @@ from typing import Dict
 from omegaconf import DictConfig
 
 import torch
-
 from tqdm import tqdm
 
 from unet_variants.models.factory import ModelFactory
@@ -19,6 +18,7 @@ from unet_variants.engine.train import train_one_epoch
 from unet_variants.engine.validate import validate_one_epoch
 from unet_variants.utils.logging import MLFlowLogger
 from unet_variants.utils.early_stopping import EarlyStopping
+from unet_variants.utils.visualization import choose_visualizer
 
 class ExperimentManager:
     """
@@ -90,6 +90,9 @@ class ExperimentManager:
         # self._set_all_seeds(int(getattr(self.cfg.train, "seed", 42)))
         self.start_epoch = 1
         self.num_epochs = self.cfg.train.epochs
+        self.vis_interval = self.cfg.train.vis.interval
+        self.vis_sample_size = self.cfg.train.vis.sample_size
+        self.vis_threshold = self.cfg.train.vis.threshold
 
     # ---------- Public API ----------
 
@@ -176,11 +179,10 @@ class ExperimentManager:
             # ---- Checkpoints ----
             self._save_checkpoint(epoch)
             # ---- Evaluate val loss ----
-            self._save_weights_if_best_loss(epoch, val_metrics["val/loss"])
+            self._save_best_model_if_best_loss(epoch, val_metrics["val/loss"])
             # ---- Sample images ----
-            if epoch % self.cfg.train.vis_interval == 0:
-                # self.save_sample_prediction(epoch, sample_size=3) still pending, i need some ideas to get images, masks and predictions to show
-                print("Vis")
+            if epoch % self.vis_interval == 0:
+                self.save_prediction_sample(epoch)
             # ---- Early Stopper ----
             if self.early_stopper.step(val_metrics["val/loss"]):
                 break
@@ -235,10 +237,9 @@ class ExperimentManager:
         metrics_to_log = {**train_metrics, **val_metrics}
         self.logger.log_metrics(metrics_to_log, epoch)
 
-    def _save_weights_if_best_loss(self, epoch: int, val_loss: float) -> None:
+    def _save_best_model_if_best_loss(self, epoch: int, val_loss: float) -> None:
         """
-        If the current validation loss improves the best loss,
-        keep a copy of the best model weights.
+        If the current validation loss improves the best validation loss.
         """
         if val_loss < self.best_val_loss:
             self.best_val_loss = val_loss
@@ -285,3 +286,33 @@ class ExperimentManager:
         self.start_epoch = saved_epoch + 1
         print(f'Resume training {self.logger.run_id} from checkpoint\n'
               f'Running from epoch {self.start_epoch} of {self.num_epochs}')
+
+    def save_prediction_sample(self, epoch: int) -> None:
+        """
+        Save sample predictions to MLflow artifacts:
+        - Pull a batch from val_loader
+        - Run model in eval + no_grad
+        - Save either a grid with sample_size rows (default) or a single triplet
+        """
+        self.model.eval()
+        with torch.no_grad():
+            # Get a batch
+            batch = next(iter(self.val_loader))
+            images, masks = batch["image"].to(self.device), batch["mask"]
+            preds = self.model(images)
+
+        # Move to CPU for visualization
+        images_cpu = images.detach().cpu()
+        masks_cpu = masks.detach().cpu()
+        preds_cpu = preds.detach().cpu()
+        if self.vis_threshold:
+            preds_cpu = torch.where(preds_cpu >= 0.5, 1, 0)
+
+        batch_size = images_cpu.shape[0]
+        sample_size = self.vis_sample_size if self.vis_sample_size < batch_size else batch_size
+        visualizer = choose_visualizer(sample_size=sample_size)
+
+        subtitle = f"Prediction sample epoch {epoch}"
+        artifact_file = f"Sample_{epoch}.png"
+        fig = visualizer(subtitle=subtitle, images=images_cpu, masks=masks_cpu, preds=preds_cpu, sample_size=sample_size)
+        self.logger.log_figure(fig, artifact_file)

@@ -36,6 +36,12 @@ early_stopping:
   min_delta: 0.0
   verbose: True
 
-vis_interval: 10
+vis:
+  interval: 1
+  sample_size: 3
+  threshold: True
+  mode: "grid"
+  cmap: "gray"
+
 # saving
 # output_dir: ${hydra:runtime.output_dir}

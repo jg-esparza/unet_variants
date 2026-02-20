@@ -7,6 +7,8 @@ from omegaconf import DictConfig
 import mlflow
 from mlflow.models import infer_signature
 
+import matplotlib.pyplot as plt
+
 class MLFlowLogger:
     """
     A wrapper class to handle MLflow lifecycle, logging, and artifact management.
@@ -132,11 +134,13 @@ class MLFlowLogger:
 
     @staticmethod
     def log_artifact(local_path: str, artifact_path: Optional[str] = None) -> None:
+        """Log a single artifact."""
         mlflow.log_artifact(local_path, artifact_path=artifact_path)
 
     @staticmethod
-    def log_artifacts(local_dir: str, artifact_path: Optional[str] = None) -> None:
-        mlflow.log_artifacts(local_dir, artifact_path=artifact_path)
+    def log_figure(fig: plt.Figure, artifact_file: str) -> None:
+        """Log a single figure."""
+        mlflow.log_figure(fig, artifact_file=artifact_file)
 
     def log_model(self, model, image):
         predictions = model(image)
