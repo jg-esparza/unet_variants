@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from typing import Dict
+from typing import Dict, Optional
 
 from omegaconf import DictConfig
 
@@ -295,7 +295,7 @@ class ExperimentManager:
         print(f'Resume training {self.logger.run_id} from checkpoint\n'
               f'Running from epoch {self.start_epoch} of {self.num_epochs}')
 
-    def save_prediction_sample(self, epoch: int) -> None:
+    def save_prediction_sample(self, epoch: Optional[int] = None) -> None:
         """
         Save sample predictions to MLflow artifacts:
         - Pull a batch from val_loader
@@ -319,9 +319,12 @@ class ExperimentManager:
         batch_size = images_cpu.shape[0]
         sample_size = self.vis_sample_size if self.vis_sample_size < batch_size else batch_size
         visualizer = choose_visualizer(sample_size=sample_size)
-
-        subtitle = f"Prediction sample epoch {epoch}"
-        artifact_file = f"Sample_{epoch}.png"
+        if epoch is None:
+            subtitle = f"Evaluation"
+            artifact_file = f"Evaluation_sample.png"
+        else:
+            subtitle = f"Prediction sample epoch {epoch}"
+            artifact_file = f"Sample_{epoch}.png"
         fig = visualizer(subtitle=subtitle, images=images_cpu, masks=masks_cpu, preds=preds_cpu, sample_size=sample_size)
         self.logger.log_figure(fig, artifact_file)
 
@@ -329,7 +332,7 @@ class ExperimentManager:
         metrics = evaluate(model=self.model, test_loader=self.val_loader, device=self.device, metrics=self.metrics)
         if self.logger.active_run is not None:
             self.logger.log_metrics(metrics)
-
+            self.save_prediction_sample()
         print("Segmentation Results")
         print(f'DSC: {metrics["seg/dsc"]:.3f}')
         print(f'IoU: {metrics["seg/iou"]:.3f}')
