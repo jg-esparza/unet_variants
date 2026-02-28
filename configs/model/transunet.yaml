@@ -1,0 +1,41 @@
+# ViT-B/16 configuration
+name: 'transunet'
+image_size: ${project.image_size}
+out_channels: ${task.out_channels}
+
+classifier: seg
+activation: softmax
+
+# pretrained_path: R50+ViT-B_16.npz
+
+# Encoder
+resnet:
+  num_layers: [3, 4, 9]
+  width_factor: 1
+
+# Patch emb
+patch_size: 16
+hidden_size: 768
+patches:
+    size: [16,16]
+    grid: [14, 14]
+
+
+# Transformer
+transformer:
+  mlp_dim: 3072
+  num_heads: 12
+  num_layers: 12
+  attention_dropout_rate: 0.0
+  dropout_rate: 0.1
+
+#Decoder
+decoder_channels: [256, 128, 64, 16]
+skip_channels: [512, 256, 64, 16]
+n_classes: 2
+n_skip: 3
+
+vis: False
+zero_head: False
+representation_size: None
+resnet_pretrained_path: None

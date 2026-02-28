@@ -6,6 +6,7 @@ from omegaconf import DictConfig
 
 from unet_variants.models.unet import UNet
 from unet_variants.models.resnet_unet import ResNetUnet
+from unet_variants.models.transunet import TransUNet
 
 from unet_variants.utils.registries import review_registry_availability, validate_instance
 
@@ -16,7 +17,8 @@ class ModelFactory:
     """
     _BUILDERS: Dict[str, Callable[[Any], nn.Module]] = {
         "unet": lambda cfg: UNet(cfg),
-        "resnet_unet": lambda cfg: ResNetUnet(cfg)
+        "resnet_unet": lambda cfg: ResNetUnet(cfg),
+        "transunet": lambda cfg: TransUNet(cfg),
     }
 
     @classmethod

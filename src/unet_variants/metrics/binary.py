@@ -54,7 +54,7 @@ class BinarySegmentationMetrics:
                 Shape: (N, 1, H, W).
             target: Ground truth binary masks in {0,1} (int/bool/float),
                 Shape: (N, 1, H, W).
-                """
+        """
         if self.task == "bin":
             tp_batch, fp_batch, fn_batch, tn_batch = self._get_binary_stats(pred, target)
             self.tp += tp_batch
