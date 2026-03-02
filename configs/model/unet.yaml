@@ -6,6 +6,8 @@ family: CNN
 in_channels: ${data.in_channels}
 out_channels: ${task.out_channels}
 
+pretrained_ckpt: #
+
 encoder: Base
 n_skip: 4
 hidden_layers: 1024

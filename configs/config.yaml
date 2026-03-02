@@ -1,7 +1,7 @@
 
 # configs/config.yaml
 defaults:
-  - model: resnet_unet
+  - model: swinunet
   - data: isic2017
   - inspect: default
   - logging: mlflow
@@ -16,7 +16,7 @@ project:
   device: cuda
   seed: 42
   image_size: 224
-  batch_size: 32
+  batch_size: 8
   num_workers: 8
   epochs: 5
 
@@ -25,6 +25,7 @@ paths:
   # repo root when running scripts (Hydra may chdir; we keep chdir false so cwd stays stable)
   repo_root: ${oc.env:UNET_VARIANTS_ROOT}
   data_dir: ${paths.repo_root}/data
+  pretrained_ckpt: ${paths.repo_root}/pretrained_ckpt
   runs_dir: ${paths.repo_root}/runs
   onnx_dir: ${paths.runs_dir}/onnx
 

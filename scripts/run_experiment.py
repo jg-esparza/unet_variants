@@ -10,19 +10,16 @@ from unet_variants.experiments.experiment import ExperimentManager
 @hydra.main(version_base="1.3", config_path="../configs", config_name="config")
 def main(cfg: DictConfig) -> None:
     print("=== Config (resolved) ===")
-    # print(OmegaConf.to_yaml(cfg, resolve=True))
-
     exp = ExperimentManager(cfg)
-
-    exp.model_summary()
+    print("=== Build experiment API (resolved)===")
+    print(f"=== Model  {cfg.model.name} ===")
+    print(f"=== Experiment  {cfg.logging.experiment_name} ===")
+    # exp.model_summary()
     exp.model_flops()
     # exp.model_onnx()
+    if cfg.train.use_pretrained_ckpt:
+        exp.load_pretrained_ckpt(path=None)
     exp.run()
-    # exp.resume(run_id="")
-    # checkpoint = torch.load("D:/joseg/Documents/Projects_practice/unet_variants/runs/mlruns/288275763051620023/659fb6241c334c468926e37f5422b9a6/artifacts/best.pth", map_location=torch.device('cpu'))
-    # exp.model.load_state_dict(checkpoint)
-    # exp.model.to(exp.device)
-    # exp.evaluate()
 
 if __name__ == "__main__":
     main()

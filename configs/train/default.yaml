@@ -4,6 +4,7 @@ seed: ${project.seed}
 batch_size: ${project.batch_size}
 num_workers: ${project.num_workers}
 amp: false
+use_pretrained_ckpt: True
 
 # loss configuration (expand later)
 loss:

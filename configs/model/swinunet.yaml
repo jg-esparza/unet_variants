@@ -1,19 +1,20 @@
 name: swinunet
 family: Transformers
-type: swin
+encoder: Swin
 
 # I/O
 image_size: ${project.image_size}
 in_channels: ${data.in_channels}
 out_channels: ${task.out_channels}
 
+# Pretrained model
+pretrained_ckpt: ${paths.pretrained_ckpt}/swin_tiny_patch4_window7_224.pth
+
 # Dropout rate
 drop_rate: 0.0
 # Drop path rate
 drop_path_rate: 0.2
 use_checkpoint: False
-
-pretrain_ckpt: ./pretrained_ckpt/swin_tiny_patch4_window7_224.pth
 
 # Swin Transformer parameters
 swin:

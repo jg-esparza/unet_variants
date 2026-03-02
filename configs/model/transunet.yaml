@@ -1,12 +1,15 @@
 # ViT-B/16 configuration
-name: 'transunet'
+name: transunet
 family: Transformers
+
+# I/O
 image_size: ${project.image_size}
 out_channels: ${task.out_channels}
 
 classifier: seg
 
-# pretrained_path: R50+ViT-B_16.npz
+# Pretrained model
+pretrained_ckpt: # R50+ViT-B_16.npz
 
 # Encoder
 resnet:

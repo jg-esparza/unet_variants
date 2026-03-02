@@ -33,17 +33,17 @@ class TransUNet(nn.Module):
         x = self.decoder(x, features)
         return self.segmentation_head(x)
 
-    def load_from(self, weights):
+    def load_from(self, path=None):
+        pretrained_path = self.config.pretrained_ckpt if path is None else path
         with torch.no_grad():
+            res_weight = pretrained_path
+            self.transformer.embeddings.patch_embeddings.weight.copy_(np2th(pretrained_path["embedding/kernel"], conv=True))
+            self.transformer.embeddings.patch_embeddings.bias.copy_(np2th(pretrained_path["embedding/bias"]))
 
-            res_weight = weights
-            self.transformer.embeddings.patch_embeddings.weight.copy_(np2th(weights["embedding/kernel"], conv=True))
-            self.transformer.embeddings.patch_embeddings.bias.copy_(np2th(weights["embedding/bias"]))
+            self.transformer.encoder.encoder_norm.weight.copy_(np2th(pretrained_path["Transformer/encoder_norm/scale"]))
+            self.transformer.encoder.encoder_norm.bias.copy_(np2th(pretrained_path["Transformer/encoder_norm/bias"]))
 
-            self.transformer.encoder.encoder_norm.weight.copy_(np2th(weights["Transformer/encoder_norm/scale"]))
-            self.transformer.encoder.encoder_norm.bias.copy_(np2th(weights["Transformer/encoder_norm/bias"]))
-
-            posemb = np2th(weights["Transformer/posembed_input/pos_embedding"])
+            posemb = np2th(pretrained_path["Transformer/posembed_input/pos_embedding"])
 
             posemb_new = self.transformer.embeddings.position_embeddings
             if posemb.size() == posemb_new.size():
@@ -69,7 +69,7 @@ class TransUNet(nn.Module):
             # Encoder whole
             for bname, block in self.transformer.encoder.named_children():
                 for uname, unit in block.named_children():
-                    unit.load_from(weights, n_block=uname)
+                    unit.load_from(pretrained_path, n_block=uname)
 
             if self.transformer.embeddings.hybrid:
                 self.transformer.embeddings.hybrid_model.root.conv.weight.copy_(np2th(res_weight["conv_root/kernel"], conv=True))

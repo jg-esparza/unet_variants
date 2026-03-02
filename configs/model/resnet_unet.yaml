@@ -5,6 +5,8 @@ family: CNN
 in_channels: ${data.in_channels}
 out_channels: ${task.out_channels}
 
+pretrained_ckpt: #
+
 encoder: ResNet34
 depth: 0
 drop_rate: 0

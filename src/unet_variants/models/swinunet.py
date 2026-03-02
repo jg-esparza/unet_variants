@@ -36,8 +36,8 @@ class SwinUnet(nn.Module):
         logits = self.swin_unet(x)
         return logits
 
-    def load_from(self, config):
-        pretrained_path = config.MODEL.PRETRAIN_CKPT
+    def load_from(self, path=None):
+        pretrained_path = self.config.pretrained_ckpt if path is None else path
         if pretrained_path is not None:
             print("pretrained_path:{}".format(pretrained_path))
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

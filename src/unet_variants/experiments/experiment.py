@@ -54,14 +54,10 @@ class ExperimentManager:
     """
 
     def __init__(self, config: DictConfig = None):
-
         # Store config
         self.cfg = config
         self._build_components()
         self._prepare_training_state()
-        # Control
-        self.best_val_loss = float("inf")
-        self.best_epoch = 1
 
     # ---------- Build / Prepare ----------
     def _build_components(self) -> None:
@@ -92,51 +88,45 @@ class ExperimentManager:
     def _prepare_training_state(self) -> None:
         """Initialize counters/metrics/seed and best weights."""
         # self._set_all_seeds(int(getattr(self.cfg.train, "seed", 42)))
-        self.start_epoch = 1
         self.num_epochs = self.cfg.train.epochs
         self.vis_interval = self.cfg.train.vis.interval
         self.vis_sample_size = self.cfg.train.vis.sample_size
         self.vis_threshold = self.cfg.train.vis.threshold
+        # Control
+        self.best_val_loss = float("inf")
+        self.start_epoch = 1
+        self.best_epoch = 1
 
     # ---------- Public API ----------
 
     def model_summary(self) -> None:
-        """
-        Print a formatted model summary from torchinfo.
-        """
+        """Print a formatted model summary from torchinfo."""
         self.inspector.model_summary(print_summary = True,
                                      save_summary = False,
                                      save_path= None)
 
     def model_flops(self) -> None:
-        """
-        Print a FLOPs/MACs report to stdout.
-        """
+        """Print a FLOPs/MACs report to stdout."""
         self.inspector.model_flops(print_report = True,
                                    save_report = False,
                                    save_txt = None,
                                    save_json = None)
 
     def model_onnx(self, view: bool = False) -> None:
-        """
-        Export the current model to ONNX and optionally open a local viewer.
-        """
+        """Export the current model to ONNX and optionally open a local viewer."""
         onnx_path = self.inspector.export_onnx(export_path=self.cfg.inspect.export_onnx.path)
         print("ONNX export path: {}".format(onnx_path))
         if view:
             self.inspector.view_onnx(onnx_path=onnx_path, port= 8081, host= "127.0.0.1", browse= True)
 
     def run(self) -> None:
-        """
-        Start a fresh MLflow run and execute the training loop.
-        """
+        """Start a fresh MLflow run and execute the training loop."""
         self.logger.start_run()
         print("Starting new run {}".format(self.logger.run_id))
         self._log_run_metadata()
         self._run_training_loop()
         self.evaluate()
         self.logger.end_run()
-
 
     def resume(self, run_id: str) -> None:
         """
@@ -157,10 +147,13 @@ class ExperimentManager:
 
     # ---------- Internal Helpers ----------
 
+    def load_pretrained_ckpt(self, path: str = None) -> None:
+        """Load a pretrained checkpoint from directory."""
+        pretrained_ckpt_path = path if path is not None else self.cfg.model.pretrained_ckpt
+        self.model.load_from(pretrained_ckpt_path)
+
     def _select_device(self) -> torch.device:
-        """
-        Select a compute device.
-        """
+        """Select a compute device."""
         return torch.device(self.cfg.project.device if torch.cuda.is_available() else "cpu")
 
     def _run_training_loop(self) -> None:

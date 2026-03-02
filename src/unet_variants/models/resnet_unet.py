@@ -19,8 +19,9 @@ class ResNetUnet(Module):
         x = self.decoder(x, features)
         return self.segmentation_head(x)
 
-    def load_from(self, load_ckpt_path):
-        if load_ckpt_path is not None:
+    def load_from(self, path=None):
+        if path is not None:
             print('Define load function')
         else:
             print("none pretrain")
+
