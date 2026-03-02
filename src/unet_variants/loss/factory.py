@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from typing import Callable, Dict, Any
+
+import torch
 import torch.nn as nn
 from omegaconf import DictConfig
 
@@ -64,7 +66,8 @@ class BceDiceLoss(nn.Module):
         self.bce = BCELoss()
         self.dice = DiceLoss()
 
-    def forward(self, pred, target):
+    def forward(self, logits, target):
+        pred = torch.sigmoid(logits)
         bce_loss = self.bce(pred, target)
         dice_loss = self.dice(pred, target)
         loss = self.wd * dice_loss + self.wb * bce_loss

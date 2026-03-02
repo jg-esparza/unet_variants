@@ -56,6 +56,7 @@ class BinarySegmentationMetrics:
                 Shape: (N, 1, H, W).
         """
         if self.task == "bin":
+            pred = torch.sigmoid(pred)
             tp_batch, fp_batch, fn_batch, tn_batch = self._get_binary_stats(pred, target)
             self.tp += tp_batch
             self.fp += fp_batch
