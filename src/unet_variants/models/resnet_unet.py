@@ -1,17 +1,14 @@
-import torch
-import torch.nn as nn
+from torch.nn import Module
 
-from unet_variants.models.components.unet_components.resnet import ResNet
-from unet_variants.models.components.unet_components.components import SegmentationHead
-from unet_variants.models.components.unet_components.decoder import Decoder
+from unet_variants.models.components.unet.resnet import ResNet
+from unet_variants.models.components.unet.decoder import Decoder
+from unet_variants.models.components.modules import SegmentationHead
 
-class ResNetUnet(nn.Module):
+class ResNetUnet(Module):
     def __init__(self, config):
         super(ResNetUnet, self).__init__()
-        self.n_channels = config.in_channels
-        self.n_classes = config.out_channels
         self.encoder = ResNet()
-        self.decoder = Decoder(config, in_channels=config.hidden_layers, conv_more=False)
+        self.decoder = Decoder(config, conv_more=False)
         self.segmentation_head = SegmentationHead(in_channels=config.decoder_channels[-1],
                                                   out_channels=config.out_channels,
                                                   kernel_size=3,
@@ -21,3 +18,9 @@ class ResNetUnet(nn.Module):
         x, features = self.encoder(x)
         x = self.decoder(x, features)
         return self.segmentation_head(x)
+
+    def load_from(self, load_ckpt_path):
+        if load_ckpt_path is not None:
+            print('Define load function')
+        else:
+            print("none pretrain")

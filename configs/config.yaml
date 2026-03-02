@@ -1,8 +1,8 @@
 
 # configs/config.yaml
 defaults:
-  - model: transunet
-  - data: busi
+  - model: resnet_unet
+  - data: isic2017
   - inspect: default
   - logging: mlflow
   - task: binary
@@ -12,10 +12,13 @@ defaults:
 
 project:
   name: unet_variants
-  seed: 42
-  device: cuda
-  image_size: 224
   classifier: seg
+  device: cuda
+  seed: 42
+  image_size: 224
+  batch_size: 32
+  num_workers: 8
+  epochs: 5
 
 # NEW: paths group (works everywhere)
 paths:

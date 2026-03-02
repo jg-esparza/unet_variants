@@ -47,20 +47,4 @@ class SegmentationHead(Sequential):
     def __init__(self, in_channels, out_channels, kernel_size=3, upsampling=1):
         conv2d = Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2)
         upsampling = UpsamplingBilinear2d(scale_factor=upsampling) if upsampling > 1 else Identity()
-        activation = ActivationFunction(out_channels)
-        super().__init__(conv2d, upsampling, activation)
-
-class ActivationFunction(Module):
-    def __init__(self, classes):
-        self.activation = torch.sigmoid if classes <= 2 else torch.softmax
-        super().__init__()
-    def forward(self, x):
-        return self.activation(x)
-
-if __name__ == '__main__':
-    input_rand = torch.randn(1, 3, 256, 256)
-    down_sample = DownSample(in_channels=3, out_channels=64)
-    print(down_sample)
-    output, out_skip = down_sample(input_rand)
-    print(output.shape)
-    print(out_skip.shape)
+        super().__init__(conv2d, upsampling)

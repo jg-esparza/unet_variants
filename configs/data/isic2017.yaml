@@ -18,7 +18,7 @@ archive_url: ""      # optional later if hosted it somewhere
 structure: already_split
 
 # preprocessing
-image_size: 128
+image_size: ${project.image_size}
 in_channels: 3
 
 norm:

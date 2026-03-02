@@ -1,14 +1,14 @@
 from torch.nn import Module
 
-from unet_variants.models.components.unet_components.components import SegmentationHead
-from unet_variants.models.components.unet_components.encoder import Encoder
-from unet_variants.models.components.unet_components.decoder import Decoder
+from unet_variants.models.components.unet.encoder import Encoder
+from unet_variants.models.components.unet.decoder import Decoder
+from unet_variants.models.components.modules import SegmentationHead
 
 class UNet(Module):
     def __init__(self, config):
         super().__init__()
         self.encoder = Encoder(config)
-        self.decoder = Decoder(config, in_channels=config.hidden_layers)
+        self.decoder = Decoder(config)
         self.segmentation_head = SegmentationHead(in_channels=config.decoder_channels[-1],
                                                   out_channels=config.out_channels,
                                                   kernel_size=3,

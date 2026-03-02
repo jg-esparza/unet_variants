@@ -1,12 +1,14 @@
 from torch.nn import Module, ModuleList
 
-from unet_variants.models.components.unet_components.components import Conv2dReLU, UpSample
+from unet_variants.models.components.modules import Conv2dReLU, UpSample
 
 class Decoder(Module):
-    def __init__(self, config, in_channels=1024, head_channels = 512, conv_more=True):
+    def __init__(self, config, conv_more=True):
         super().__init__()
         self.config = config
-        head_channels = head_channels
+        in_channels=config.hidden_layers
+        head_channels = config.head_channels
+
         if conv_more:
             self.conv_more = Conv2dReLU(in_channels,
                                         head_channels,
@@ -44,23 +46,3 @@ class Decoder(Module):
                 skip = None
             x = decoder_block(x, skip=skip)
         return x
-
-import torch
-import ml_collections
-
-network_config = ml_collections.ConfigDict()
-network_config.decoder_channels = (256, 128, 64, 16)
-network_config.skip_channels = [512, 256, 128, 64]
-network_config.n_skip = 4
-
-if __name__ == '__main__':
-    input_decoder = torch.randn(1, 1024, 16, 16)
-    features = [torch.randn(1, 512, 32, 32),
-                torch.randn(1, 256, 64, 64),
-                torch.randn(1, 128, 128, 128),
-                torch.randn(1, 64, 256, 256)]
-    decoder = Decoder(network_config)
-    output = decoder(input_decoder, features)
-    print(output.size())
-    # print(decoder)
-
