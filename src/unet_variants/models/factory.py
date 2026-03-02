@@ -7,6 +7,7 @@ from omegaconf import DictConfig
 from unet_variants.models.unet import UNet
 from unet_variants.models.resnet_unet import ResNetUnet
 from unet_variants.models.transunet import TransUNet
+from unet_variants.models.swinunet import SwinUnet
 
 from unet_variants.utils.registries import review_registry_availability, validate_instance
 
@@ -19,6 +20,7 @@ class ModelFactory:
         "unet": lambda cfg: UNet(cfg),
         "resnet_unet": lambda cfg: ResNetUnet(cfg),
         "transunet": lambda cfg: TransUNet(cfg),
+        "swinunet": lambda cfg: SwinUnet(cfg),
     }
 
     @classmethod
