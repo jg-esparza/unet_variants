@@ -11,7 +11,7 @@ This repository provides a unified, configuration‑driven training and evaluati
 Reproducible experiments with clean override support.
 
 ### 📊 MLflow experiment tracking
-Logs system and segmentation metrics, hyperparameters, checkpoints, ONNX exports, predicted samples, and failure cases.
+Logs system and segmentation metrics, hyperparameters, checkpoints, ONNX exports, predicted samples.
 
 ### 🔍 Model inspection
 Params, FLOPs, inference speed, memory footprint.
@@ -32,8 +32,6 @@ Easily plug in new architectures, loss function, optimizers and schedulers.
 - **TransUNet**(transunet). Hybrid CNN-Vit.
 - **Swin‑UNet**(swinunet). Hierarchical windowed‑attention transformer adapted to segmentation.
 
-### SSM‑based
-- **VM‑UNet**. Pure VSSM based model.
 ---
 
 ## 📚 Supported Datasets
@@ -48,8 +46,8 @@ Currently supported:
 
 ## 📏 Evaluation Metrics
 
-- Dice Similarity Coefficient (DSC)
-- Mean Intersection over Union (mIoU)
+- Dice Similarity Coefficient
+- Mean Intersection over Union
 - Accuracy
 - Sensitivity
 - Specificity
