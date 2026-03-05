@@ -1,63 +1,39 @@
+# UNet Variants for Binary Segmentation (CNN · Transformers · Mamba)
 
- U-Net Variants Benchmark (CNN · Transformers · Mamba)
+A modular, extensible, and reproducible framework for benchmarking CNN‑based, Transformer‑based, and SSM‑based UNet architectures for binary medical image segmentation.
 
-A clean, reproducible benchmark framework for **binary medical image segmentation**, supporting multiple public datasets and a growing collection of U‑Net variants (CNN-based, Transformer-based and Mamba-based).
-
-This project is **inspired by the engineering patterns developed during my M.Sc. thesis**, but it is a **new, broader, independent framework** focused on:
-
-- extensibility  
-- reproducibility  
-- fair model comparison  
-- modular research workflows  
-- clean engineering design
+This repository provides a unified, configuration‑driven training and evaluation pipeline using Hydra, MLflow, and PyTorch, with full experiment logging, automatic checkpointing, predicted samples, ONNX export, and failure case analysis.
 
 ---
+## Features
 
-## 🚀 Objectives
+### ⚙️ Hydra‑based configuration system
+Reproducible experiments with clean override support.
 
-- Provide a unified and reproducible pipeline for **training / evaluation / inference**  
-- Enable rapid experimentation with different **U‑Net architectures**  
-- Offer a modular framework that researchers and engineers can easily extend  
-- Support multi-dataset benchmarking with consistent metrics and preprocessing  
+### 📊 MLflow experiment tracking
+Logs system and segmentation metrics, hyperparameters, checkpoints, ONNX exports, predicted samples, and failure cases.
 
----
+### 🔍 Model inspection
+Params, FLOPs, inference speed, memory footprint.
 
-## 🧩 Supported Model Families
+### 🧪 Unified training/evaluation engine
+Dice, IoU, Accuracy, Sensitivity, Specificity.
 
-### **CNN-Based**
-- U-Net
-- (soon) ResNet‑U‑Net
-
-### **Transformer-Based**
-- (upcoming) Swin-UNet  
-
-### **Mamba-Based**
-- (upcoming) VM‑UNet  
+### 🧱 Modular model, loss and optimization strategy factories
+Easily plug in new architectures, loss function, optimizers and schedulers.
 
 ---
+## 🧬 Supported Architectures
+### CNN‑based
+- **UNet** (unet). Classic encoder–decoder segmentation network.
+- **ResNet+UNet** (resnet_unet). UNet using ResNet34 backbone for feature extraction.
 
-## ✨ Key Features
+### Transformer‑based
+- **TransUNet**(transunet). Hybrid CNN-Vit.
+- **Swin‑UNet**(swinunet). Hierarchical windowed‑attention transformer adapted to segmentation.
 
-### **Unified Experiment Runner**
-- Build models from Hydra config files  
-- Automatic parameter count  
-- FLOPs estimation (input-size dependent)  
-- Detailed `torchinfo` model summaries  
-- Train / Evaluate with consistent metrics  
-- Save / Load checkpoints  
-
-### **Experiment Tracking**
-- MLflow logging  
-- Metrics, parameters, curves  
-- Artifacts (model weights, visual outputs, summaries)  
-
-### **Modular Architecture**
-- Dataset wrappers  
-- Dataloaders  
-- Training / evaluation engines  
-- Model factory  
-- Inspection utilities (FLOPs, summaries, visualizations)
-
+### SSM‑based
+- **VM‑UNet**. Pure VSSM based model.
 ---
 
 ## 📚 Supported Datasets
@@ -66,109 +42,47 @@ Place datasets inside the `data/` folder following this structure:
 
 Currently supported:
 
-- **ISIC2017**
-- (upcoming)**Kvasir-SEG**
-- (upcoming)**BUSI**
+- **ISIC2017**. Divided into a 7:3 ratio, following prior procedure from [VM-UNet](https://github.com/JCruan519/VM-UNet).
 
 ---
 
 ## 📏 Evaluation Metrics
 
-- **Dice Similarity Coefficient (DSC)**
-- **Mean Intersection over Union (mIoU)**
-- **Accuracy**
-- **Sensitivity**
-- **Specificity**
+- Dice Similarity Coefficient (DSC)
+- Mean Intersection over Union (mIoU)
+- Accuracy
+- Sensitivity
+- Specificity
+---
+## 📁 Repository Structure
+```markdown
+unet_variants/
+│
+├── config/                      # Hydra configs (models, inspect, dataset, logging, training, evaluating)
+├── data/                        # Place datasets here
+├── runs/                        # Hydra, MLflow runs (auto-generated)
+├── scripts/                     # Training, evaluation, benchmarking scripts
+├── README.md
+├── pyproject.toml
+└── src/
+    └── unet_variants/
+        ├── data/                # Dataset loaders, augmentations        
+        ├── engine/              # Train, val, evaluator
+        ├── loss/                # Losses
+        ├── metrics/             # Binary Segmentation(Dice, IoU, Acc, Sensitivity, Specificity)
+        ├── models/              # CNN, Transformer, SSM
+        ├── optim/               # Optimization strategy
+        └── utils/               # Helpers, logging, early stopper, visualization
+```
 
 ---
-
-## 🧱 Project Architecture Overview
-```markdown
-
-unet_variants/
-├─ data/                               # Data storage
-│  └─ datasets
-├─ configs/
-│   ├─ config.yaml                     # Top-level Hydra config; composes model/data/train/inspect/logging/task/paths
-│   ├─ data/
-│   │   └─ isic.yaml                   # Example dataset config (paths, input size, normalization)
-│   ├─ eval/
-│   │   └─ default.yaml                # Common evaluation parameters
-│   ├─ inspect/
-│   │   └─ default.yaml                # Common model inspection parameters
-│   ├─ logging/
-│   │   └─ mlflow.yaml                 # Tracking URI, experiment name, run naming
-│   ├─ model/
-│   │   ├─ unet.yaml                   # U-Net config
-│   │   └─ resnet_unet.yaml            # U-Net + ResNet encoder config
-│   ├─ task/
-│   │   └─ binary.yaml                 # Segmentation task (Binary, output channels)  
-│   └─ train/
-│   │   └─ default.yaml                # Common training params (optimizer, scheduler, loss, batch_size)
-├─ src/
-│   ├─ unet_variants/
-│   │   ├── __init__.py
-│   │   ├─ data/                       # Dataset modules (loaders, transforms, preparation)
-│   │   │   ├── __init__.py
-│   │   │   ├── dataset.py
-│   │   │   ├── loaders.py
-│   │   │   ├── transforms.py
-│   │   │   └── prepare.py
-│   │   ├─ engine/                     # Core training & evaluation logic
-│   │   │   ├── __init__.py
-│   │   │   ├── evaluate.py
-│   │   │   ├── train.py
-│   │   │   └── validate.py   
-│   │   ├── experiments/               # Experiment handling
-│   │   │   ├── __init__.py
-│   │   │   └── experiment.py
-│   │   ├── inspection/                # Introspection and profiling utilities
-│   │   │   ├── __init__.py
-│   │   │   ├── flops.py
-│   │   │   ├── summary.py
-│   │   │   ├── viz.py
-│   │   │   ├── inspector.py
-│   │   │   └── onnx.py
-│   │   ├── loss/                      # Loss functions (BCE+Dice, etc.)
-│   │   │   ├── __init__.py
-│   │   │   └── factory.py
-│   │   ├── optim/                     # Optimization strategy
-│   │   │   ├── __init__.py
-│   │   │   ├── build_optim.py
-│   │   │   └── build_scheduler.py
-│   │   ├── metrics/                   # Metrics for segmentation evaluation
-│   │   │   ├── __init__.py
-│   │   │   └── segmentation.py
-│   │   ├── utils/                     # General-purpose utilities
-│   │   │   ├── bootstrap.py
-│   │   │   ├── device.py
-│   │   │   ├── io.py
-│   │   │   ├── logging.py
-│   │   │   ├── registries.py
-│   │   │   └── seed.py
-│   │   ├── models/                    # All U-Net variants live here
-│   │   │   ├── components/            # Reusable blocks (conv blocks, attention, upsample)
-│   │   │   ├── unet/                  # Baseline U-Net implementation
-│   │   │   ├── resnet_unet/           # U-Net with ResNet encoder
-│   │   │   └── factory.py             # 🔑 Model registry/factory (maps string keys → model classes)
-├─ scripts/
-│  ├─ model_inspect.py
-│  └─ run_experiment.py
-├─ runs/
-│  ├─ hydraruns                       
-│  └─ mlruns
-├─ .gitignore
-├─ README.md
-├─ LICENSE
-└─ pyproject.toml                       # Packaging + minimal dependencies
-```
 
 ## ⚙️ Installation
 
 ### 1. Create environment
 ```
-conda create --name unet-benchmark python=3.11
-conda activate unet-benchmark
+conda create --name unet-variants python=3.11
+conda activate unet-variants
 ```
 
 ### 2. Install PyTorch + CUDA
@@ -181,53 +95,50 @@ pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https
 pip install -e .
 ```
 
-
 ## 🚀 Getting Started
 
-After installing the environment and the package, you can immediately run an experiment.
-
-### 1. Run a training experiment
-
+### 1. Run model inspection
 ```
-python scripts/train.py model=unet dataset=isic2017
-```
-
-Hydra will automatically create a timestamped folder inside:
-```markdown
-runs/
-│  ├── hydra/
-│  ├── mlflow/
-```
-### 2. View MLflow dashboard
-```
-mlflow ui --backend-store-uri runs/mlflow
-```
-Open the URL to inspect:
-
-- training curves
-- model parameters
-- artifacts (checkpoints, sample predictions)
-= metrics across experiments
-
-### 3. Run model inspection (FLOPs, summary)
-```
-python scripts/inspect.py model=unet input_size=1,3,256,256
+python scripts/model_inspect.py model=<model_name>
 ```
 This generates:
 
 - FLOPs
 - parameter count
 - architecture summary
-- optional visualizations
+- optional ONNX for visualization
 
-### 4. Perform inference
+ONNX saved in `runs/onnx/`
+
+
+### 2. Run a training experiment
+
 ```
-python scripts/infer.py model=unet ckpt=path/to/checkpoint.png input=path/to/image.png
+python scripts/train.py model=<model_name> dataset=<dataset_name>
 ```
-The output will be saved inside:
-```markdown
-runs/
-│  ├── mlflow/
-│  │  ├── <run_id>/
-│  │  │  ├── predictions/
+
+Artifacts saved in `runs/mlruns/<experiment_id>/<run_id>/artifacts/`
+
+
+### 3. View MLflow dashboard
 ```
+mlflow server --backend-store-uri ./runs/mlruns
+```
+Open the URL to inspect:
+
+- Training curves
+- Model parameters
+- Artifacts (checkpoints, sample predictions, failure cases)
+- Metrics across experiments
+
+--- 
+
+🙏 Acknowledgements
+
+- [U-Net](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
+- [TransUNet](https://github.com/Beckschen/TransUNet)
+- [Swin-Unet](https://github.com/HuCaoFighting/Swin-Unet)
+- [VM-UNet](https://github.com/JCruan519/VM-UNet)
+- [ISIC 2017](https://challenge.isic-archive.com/data/) Challenge Dataset (public dermoscopic images)
+
+Special thanks to the authors for providing their research and public resources.
