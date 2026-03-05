@@ -126,29 +126,40 @@ class ExperimentManager:
         print("Starting new run {}".format(self.logger.run_id))
         self._log_run_metadata()
         self._run_training_loop()
-        self.evaluate()
+        self._evaluate()
         self.logger.end_run()
 
     def resume(self, run_id: str) -> None:
         """Resume training from the last checkpoint of a prior run."""
-        assert self.logger.run_exist(run_id=run_id), f"Run {run_id} not found."
-        self.logger.run_id = run_id
-        self.logger.set_artifact_location()
+        self.ensure_run_exist(run_id)
         self._generate_model_report()
         # Load state from checkpoint
         ckpt_path = self.logger.artifact_path("latest.pth")
         assert is_file(ckpt_path), f"Checkpoint not found at: {ckpt_path}."
         self._load_ckpt(ckpt_path)
         if self.start_epoch > self.num_epochs:
-            print("Training has been already done.")
+            print("Training completed.")
             return
         # Continue the run under the same MLflow run_id
         print(f"Resume training {self.logger.run_id} from checkpoint\n"
               f"Running from epoch {self.start_epoch} of {self.num_epochs}")
         self.logger.start_run(run_id=run_id)
         self._run_training_loop()
-        self.evaluate()
+        self._evaluate()
         self.logger.end_run()
+
+    def evaluate_run(self, run_id: str) -> None:
+        """Evaluate best model from existing run."""
+        self.ensure_run_exist(run_id)
+        self._generate_model_report()
+        # Load best model
+        best_model_path = self.logger.artifact_path("best.pth")
+        assert is_file(best_model_path), f"Best model not found at: {best_model_path}."
+        # Load best model
+        print(f"Evaluating run {self.logger.run_id}\n")
+        self.model.load_state_dict(torch.load(best_model_path, weights_only=True))
+        self.model.to(self.device)
+        self._evaluate()
 
     # ---------- Internal Helpers ----------
 
@@ -199,6 +210,11 @@ class ExperimentManager:
             # ---- Early Stopper ----
             if self.early_stopper.step(val_metrics["val/loss"]):
                 break
+
+    def ensure_run_exist(self, run_id: str) -> None:
+        assert self.logger.run_exist(run_id=run_id), f"Run {run_id} not found."
+        self.logger.run_id = run_id
+        self.logger.set_artifact_location()
 
     def _log_run_metadata(self) -> None:
         """
@@ -284,7 +300,7 @@ class ExperimentManager:
             "scheduler_state_dict": self.scheduler.state_dict(),
             }, self.logger.artifact_path("latest.pth"))
 
-    def _load_ckpt(self, ckpt_path):
+    def _load_ckpt(self, ckpt_path: str) -> None:
         """
         Load the latest checkpoint from the logger's artifact path and
         restore training state.
@@ -336,7 +352,7 @@ class ExperimentManager:
         fig = visualizer(subtitle=subtitle, images=images_cpu, masks=masks_cpu, preds=preds_cpu, sample_size=sample_size)
         self.logger.log_figure(fig, artifact_file)
 
-    def evaluate(self):
+    def _evaluate(self) -> None:
         metrics = evaluate(model=self.model, test_loader=self.val_loader, device=self.device, metrics=self.metrics)
         if self.logger.active_run is not None:
             self.logger.log_metrics(metrics)
