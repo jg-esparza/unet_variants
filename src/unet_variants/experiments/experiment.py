@@ -21,6 +21,7 @@ from unet_variants.metrics.binary import BinarySegmentationMetrics
 from unet_variants.utils.logging import MLFlowLogger
 from unet_variants.utils.early_stopping import EarlyStopping
 from unet_variants.utils.visualization import choose_visualizer
+from unet_variants.utils.io import is_file
 
 class ExperimentManager:
     """
@@ -129,17 +130,21 @@ class ExperimentManager:
         self.logger.end_run()
 
     def resume(self, run_id: str) -> None:
-        """
-        Resume training from the last checkpoint of a prior run.
-        """
-        # TODO: what if run is already done?
-        self.logger.run_id=run_id
+        """Resume training from the last checkpoint of a prior run."""
+        assert self.logger.run_exist(run_id=run_id), f"Run {run_id} not found."
+        self.logger.run_id = run_id
         self.logger.set_artifact_location()
-        # Log model stats/flops/onnx for this run's artifacts (optional)
         self._generate_model_report()
         # Load state from checkpoint
-        self._load_checkpoint()
+        ckpt_path = self.logger.artifact_path("latest.pth")
+        assert is_file(ckpt_path), f"Checkpoint not found at: {ckpt_path}."
+        self._load_ckpt(ckpt_path)
+        if self.start_epoch > self.num_epochs:
+            print("Training has been already done.")
+            return
         # Continue the run under the same MLflow run_id
+        print(f"Resume training {self.logger.run_id} from checkpoint\n"
+              f"Running from epoch {self.start_epoch} of {self.num_epochs}")
         self.logger.start_run(run_id=run_id)
         self._run_training_loop()
         self.evaluate()
@@ -147,10 +152,18 @@ class ExperimentManager:
 
     # ---------- Internal Helpers ----------
 
-    def load_pretrained_ckpt(self, path: str = None) -> None:
+    def load_pretrained_ckpt(self, path: Optional[str] = None) -> None:
         """Load a pretrained checkpoint from directory."""
-        pretrained_ckpt_path = path if path is not None else self.cfg.model.pretrained_ckpt
-        self.model.load_from(pretrained_ckpt_path)
+        pretrained_ckpt_path = path if path is not None else self.cfg.paths.pretrained_ckpt
+        if is_file(pretrained_ckpt_path):
+            print(f"Pretrained checkpoint found at: {pretrained_ckpt_path}.")
+            try:
+                self.model.load_from(pretrained_ckpt_path)
+                print(f"Loaded pretrained checkpoint successfully from: {pretrained_ckpt_path}")
+            except Exception as e:
+                print(f"Failed to load pretrained checkpoint from {pretrained_ckpt_path}. Error: {e}")
+        else:
+            print(f"Pretrained checkpoint not found at: {pretrained_ckpt_path}. Skipping load.")
 
     def _select_device(self) -> torch.device:
         """Select a compute device."""
@@ -177,7 +190,7 @@ class ExperimentManager:
             # ---- Logging ----
             self.log_metrics(epoch, train_metrics, val_metrics, start_t)
             # ---- Checkpoints ----
-            self._save_checkpoint(epoch)
+            self._save_ckpt(epoch)
             # ---- Evaluate val loss ----
             self._save_best_model_if_best_loss(epoch, val_metrics["val/loss"])
             # ---- Sample images ----
@@ -254,7 +267,7 @@ class ExperimentManager:
         """
         torch.save(self.model.state_dict(),  self.logger.artifact_path("best.pth"))
 
-    def _save_checkpoint(self, epoch: int) -> None:
+    def _save_ckpt(self, epoch: int) -> None:
         """
         Persist a training checkpoint with:
         - epoch, best_epoch, best_val_loss
@@ -271,22 +284,24 @@ class ExperimentManager:
             "scheduler_state_dict": self.scheduler.state_dict(),
             }, self.logger.artifact_path("latest.pth"))
 
-    def _load_checkpoint(self):
+    def _load_ckpt(self, ckpt_path):
         """
         Load the latest checkpoint from the logger's artifact path and
         restore training state.
         """
-        checkpoint = torch.load(self.logger.artifact_path("latest.pth"),
-                                map_location=torch.device('cpu'))
-        saved_epoch = checkpoint['epoch']
-        self.best_epoch = checkpoint['best_epoch']
-        self.best_val_loss = checkpoint['best_val_loss']
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        self.start_epoch = saved_epoch + 1
-        print(f'Resume training {self.logger.run_id} from checkpoint\n'
-              f'Running from epoch {self.start_epoch} of {self.num_epochs}')
+        try:
+            checkpoint = torch.load(ckpt_path,
+                                    map_location=torch.device('cpu'))
+            saved_epoch = checkpoint['epoch']
+            self.best_epoch = checkpoint['best_epoch']
+            self.best_val_loss = checkpoint['best_val_loss']
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            self.start_epoch = saved_epoch + 1
+            print(f"Loaded checkpoint successfully from: {ckpt_path}")
+        except Exception as e:
+            print(f"Failed to load pretrained checkpoint from {ckpt_path}. Error: {e}")
 
     def save_prediction_sample(self, epoch: Optional[int] = None) -> None:
         """

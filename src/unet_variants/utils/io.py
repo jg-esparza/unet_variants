@@ -23,6 +23,10 @@ def is_non_empty_dir(path: PathLike) -> bool:
     p = Path(path)
     return p.exists() and p.is_dir() and any(p.iterdir())
 
+def is_file(path: PathLike) -> bool:
+    """Return True if path exists and contains at least one entry."""
+    p = Path(path)
+    return p.is_file()
 
 def save_text(text: str, path: PathLike, encoding: str = "utf-8") -> Path:
     """Save text to a file, ensuring parent directory exists."""

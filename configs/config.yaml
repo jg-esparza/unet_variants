@@ -1,11 +1,10 @@
-
 # configs/config.yaml
 defaults:
-  - model: swinunet
+  - model: unet
   - data: isic2017
+  - task: binary
   - inspect: default
   - logging: mlflow
-  - task: binary
   - train: default
   - eval: default
   - _self_
@@ -19,13 +18,14 @@ project:
   batch_size: 8
   num_workers: 8
   epochs: 5
+  use_pretrained_ckpt: False
 
 # NEW: paths group (works everywhere)
 paths:
   # repo root when running scripts (Hydra may chdir; we keep chdir false so cwd stays stable)
   repo_root: ${oc.env:UNET_VARIANTS_ROOT}
   data_dir: ${paths.repo_root}/data
-  pretrained_ckpt: ${paths.repo_root}/pretrained_ckpt
+  pretrained_ckpt: ${paths.repo_root}/pretrained_ckpt/${model.pretrained_ckpt}
   runs_dir: ${paths.repo_root}/runs
   onnx_dir: ${paths.runs_dir}/onnx
 

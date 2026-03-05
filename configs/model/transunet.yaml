@@ -9,7 +9,9 @@ out_channels: ${task.out_channels}
 classifier: seg
 
 # Pretrained model
-pretrained_ckpt: # R50+ViT-B_16.npz
+# IMPORTANT: Only file name, not full path
+# can be null or "" to disable pretrained loading
+pretrained_ckpt: R50+ViT-B_16.npz
 
 # Encoder
 resnet:

@@ -6,7 +6,10 @@ family: CNN
 in_channels: ${data.in_channels}
 out_channels: ${task.out_channels}
 
-pretrained_ckpt: #
+# Pretrained model
+# IMPORTANT: Only file name, not full path
+# can be null or "" to disable pretrained loading
+pretrained_ckpt: null
 
 encoder: Base
 n_skip: 4

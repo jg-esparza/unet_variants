@@ -8,7 +8,9 @@ in_channels: ${data.in_channels}
 out_channels: ${task.out_channels}
 
 # Pretrained model
-pretrained_ckpt: ${paths.pretrained_ckpt}/swin_tiny_patch4_window7_224.pth
+# IMPORTANT: Only file name, not full path
+# can be null or "" to disable pretrained loading
+pretrained_ckpt: swin_tiny_patch4_window7_224.pth
 
 # Dropout rate
 drop_rate: 0.0

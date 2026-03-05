@@ -15,11 +15,13 @@ def main(cfg: DictConfig) -> None:
     print(f"=== Model  {cfg.model.name} ===")
     print(f"=== Experiment  {cfg.logging.experiment_name} ===")
     # exp.model_summary()
-    exp.model_flops()
+    # exp.model_flops()
     # exp.model_onnx()
-    if cfg.train.use_pretrained_ckpt:
-        exp.load_pretrained_ckpt(path=None)
+    if cfg.project.use_pretrained_ckpt:
+        print("===Use pretrained checkpoint active---")
+        exp.load_pretrained_ckpt()
     exp.run()
+    # exp.resume(run_id="")
 
 if __name__ == "__main__":
     main()

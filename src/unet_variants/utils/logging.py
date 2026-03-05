@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import os
+
 from typing import Any, Dict, Optional, Literal
+
 from omegaconf import DictConfig
 
 import mlflow
 from mlflow.models import infer_signature
 
 import matplotlib.pyplot as plt
+
+from unet_variants.utils.io import is_non_empty_dir
 
 class MLFlowLogger:
     """
@@ -91,6 +95,11 @@ class MLFlowLogger:
             mlflow.end_run(status=status)
             self.active_run = None
 
+    def run_exist(self, run_id: str = None) -> bool:
+        assert isinstance(run_id, str) and run_id, "Incorrect run_id provided."
+        path = os.path.join(self.cfg.mlruns_path, self.experiment_id, run_id)
+        return True if is_non_empty_dir(path) else False
+
     def set_artifact_location(self) -> None:
         """
         Resolve both the MLflow artifact URI and (if possible) a local filesystem path
@@ -104,7 +113,6 @@ class MLFlowLogger:
 
     def _setup_system_metrics_sampling(self) -> None:
         """Configure system metrics sampling, if supported by your MLflow version and config."""
-
         mlflow.set_system_metrics_sampling_interval(self.cfg.system_metrics.sampling_interval)
         mlflow.set_system_metrics_samples_before_logging(self.cfg.system_metrics.samples_before_logging)
         mlflow.enable_system_metrics_logging()
