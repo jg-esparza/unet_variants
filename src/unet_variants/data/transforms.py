@@ -137,9 +137,9 @@ class NormalizeTorch:
 def _get_vm_stats(cfg, phase: str):
     """Get scalar mean/std for vm_mamba mode."""
     # optional best practice switch: use train stats everywhere
-    use_train = bool(getattr(cfg.data.norm, "use_train_stats_for_all", False))
+    use_train = bool(getattr(cfg.dataset.norm, "use_train_stats_for_all", False))
     split = "train" if (phase == "train" or use_train) else "val"
-    stats = cfg.data.norm.stats.train if split == "train" else cfg.data.norm.stats.val
+    stats = cfg.dataset.norm.stats.train if split == "train" else cfg.dataset.norm.stats.val
     return float(stats.mean), float(stats.std)
 
 
@@ -151,13 +151,13 @@ def build_transforms(cfg:DictConfig, phase: str):
       - imagenet: same but ImageNet stats
       - none: ToTensorScale255 -> resize -> aug (mask binarized)
     """
-    mode = str(cfg.data.norm.mode).lower()
+    mode = str(cfg.dataset.norm.mode).lower()
 
-    aug = cfg.data.augment
+    aug = cfg.dataset.augment
     do_aug = (phase == "train") and bool(aug.enabled)
 
     # Common geometric transforms (operate on torch tensors)
-    geom = [ResizePair(cfg.data.image_size)]
+    geom = [ResizePair(cfg.dataset.image_size)]
     if do_aug:
         geom += [
             RandomHFlip(aug.hflip),
@@ -176,8 +176,8 @@ def build_transforms(cfg:DictConfig, phase: str):
     if mode == "imagenet":
         # imagenet_mean = [0.485, 0.456, 0.406]
         # imagenet_std  = [0.229, 0.224, 0.225]
-        imagenet_mean = list(cfg.data.norm.imagenet_stats.mean)
-        imagenet_std = list(cfg.data.norm.imagenet_stats.std)
+        imagenet_mean = list(cfg.dataset.norm.imagenet_stats.mean)
+        imagenet_std = list(cfg.dataset.norm.imagenet_stats.std)
         return PairCompose([
             ToTensorScale255(),                        # numpy uint8 -> tensor [0,1]
             *geom,
@@ -186,8 +186,8 @@ def build_transforms(cfg:DictConfig, phase: str):
 
     if mode == "standard_train":
         # best practice: use TRAIN stats for all splits
-        mean = list(cfg.data.norm.train_stats_channel.mean)
-        std = list(cfg.data.norm.train_stats_channel.std)
+        mean = list(cfg.dataset.norm.train_stats_channel.mean)
+        std = list(cfg.dataset.norm.train_stats_channel.std)
         return PairCompose([
             ToTensorScale255(),
             *geom,

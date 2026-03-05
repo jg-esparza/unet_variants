@@ -4,7 +4,7 @@ encoder: Swin
 
 # I/O
 image_size: ${project.image_size}
-in_channels: ${data.in_channels}
+in_channels: ${dataset.in_channels}
 out_channels: ${task.out_channels}
 
 # Pretrained model

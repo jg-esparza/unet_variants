@@ -7,10 +7,10 @@ defaults:
 name: isic2017
 
 # paths
-root: ${paths.data_dir}/${data.name}
+root: ${paths.data_dir}/${dataset.name}
 
 # optional: local zip path (manual download)
-archive_path: ${data.root}.zip     # e.g. //Downloads/isic2017.zip
+archive_path: ${dataset.root}.zip # e.g. //Downloads/isic2017.zip
 archive_url: ""      # optional later if hosted it somewhere
 
 

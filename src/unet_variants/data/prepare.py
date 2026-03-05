@@ -14,24 +14,24 @@ def ensure_extracted_dataset(cfg:DictConfig) -> Path:
     Ensure dataset root exists and contains extracted files.
 
     Policy:
-    - If cfg.data.root exists and is non-empty -> use it.
-    - Else if cfg.data.archive_path exists -> extract into cfg.data.root.
+    - If cfg.dataset.root exists and is non-empty -> use it.
+    - Else if cfg.dataset.archive_path exists -> extract into cfg.dataset.root.
     - Else raise an error.
 
     Expected structure under root:
       root/train/images, root/train/masks
       root/val/images,   root/val/masks
     """
-    root = Path(cfg.data.root).expanduser().resolve()
+    root = Path(cfg.dataset.root).expanduser().resolve()
 
     if is_non_empty_dir(root):
         return root
 
-    archive_path = str(getattr(cfg.data, "archive_path", "")).strip()
+    archive_path = str(getattr(cfg.dataset, "archive_path", "")).strip()
     if not archive_path:
         raise ValueError(
-            "Dataset not found at data.root and no data.archive_path provided. "
-            "Please download the zip and set data.archive_path."
+            f"Dataset not found at dataset.root and no data.archive_path provided. "
+            f"Please download the zip and set data.archive_path."
         )
 
     ap = Path(archive_path).expanduser().resolve()

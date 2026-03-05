@@ -1,7 +1,7 @@
 # configs/config.yaml
 defaults:
   - model: unet
-  - data: isic2017
+  - dataset: isic2017
   - task: binary
   - inspect: default
   - logging: mlflow
@@ -31,6 +31,6 @@ paths:
 
 hydra:
   run:
-    dir: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${now:%H-%M-%S}_${model.name}_${data.name}
+    dir: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${now:%H-%M-%S}_${model.name}_${dataset.name}
   job:
     chdir: false
