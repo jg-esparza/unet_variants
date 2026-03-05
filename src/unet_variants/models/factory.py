@@ -4,10 +4,10 @@ from typing import Callable, Dict, Any
 import torch.nn as nn
 from omegaconf import DictConfig
 
-from unet_variants.models.unet import UNet
-from unet_variants.models.resnet_unet import ResNetUnet
-from unet_variants.models.transunet import TransUNet
-from unet_variants.models.swinunet import SwinUnet
+from unet_variants.models.cnn.unet import UNet
+from unet_variants.models.cnn.resnet_unet import ResNetUnet
+from unet_variants.models.transformers.transunet import TransUNet
+from unet_variants.models.transformers.swinunet import SwinUnet
 
 from unet_variants.utils.registries import review_registry_availability, validate_instance
 

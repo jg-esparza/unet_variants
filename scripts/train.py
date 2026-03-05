@@ -14,14 +14,14 @@ def main(cfg: DictConfig) -> None:
     print("=== Build experiment API (resolved)===")
     print(f"=== Model  {cfg.model.name} ===")
     print(f"=== Experiment  {cfg.logging.experiment_name} ===")
-    # exp.model_summary()
-    # exp.model_flops()
-    # exp.model_onnx()
+    exp.model_flops()
+    # Load pretrained weights
     if cfg.project.use_pretrained_ckpt:
         print("===Use pretrained checkpoint active---")
         exp.load_pretrained_ckpt()
-    exp.run()
-    # exp.resume(run_id="")
+    # exp.run()
+    # exp.resume(run_id="feb8a8e63f164dff90ac1cc858d5048e")
+    # exp.evaluate_run(run_id="feb8a8e63f164dff90ac1cc858d5048e")
 
 if __name__ == "__main__":
     main()

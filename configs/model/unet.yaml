@@ -3,7 +3,7 @@ name: unet
 family: CNN
 
 # I/O
-in_channels: ${data.in_channels}
+in_channels: ${dataset.in_channels}
 out_channels: ${task.out_channels}
 
 # Pretrained model
