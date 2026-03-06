@@ -13,7 +13,7 @@ from unet_variants.inspection.inspector import ModelInspector
 from unet_variants.loss.factory import LossFactory
 from unet_variants.optim.build_optim import OptimizerFactory
 from unet_variants.optim.build_scheduler import SchedulerFactory
-from unet_variants.data.loaders import build_dataloaders
+from unet_variants.dataset.loaders import build_dataloaders
 from unet_variants.engine.train import train_one_epoch
 from unet_variants.engine.validate import validate_one_epoch
 from unet_variants.engine.evaluate import evaluate

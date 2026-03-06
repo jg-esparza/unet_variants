@@ -1,6 +1,6 @@
 # configs/config.yaml
 defaults:
-  - model: unet
+  - model: resnet_unet
   - dataset: isic2017
   - task: binary
   - inspect: default
@@ -17,7 +17,7 @@ project:
   image_size: 224
   batch_size: 32
   num_workers: 8
-  epochs: 300
+  epochs: 100
   use_pretrained_ckpt: False
 
 # NEW: paths group (works everywhere)

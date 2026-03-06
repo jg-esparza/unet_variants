@@ -6,9 +6,9 @@ from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 import torch
 
-from unet_variants.data.prepare import ensure_extracted_dataset
-from unet_variants.data.dataset import SegmentationDataset
-from unet_variants.data.transforms import build_transforms
+from unet_variants.dataset.prepare import ensure_extracted_dataset
+from unet_variants.dataset.dataset import SegmentationDataset
+from unet_variants.dataset.transforms import build_transforms
 
 
 def build_dataloaders(cfg: DictConfig):
