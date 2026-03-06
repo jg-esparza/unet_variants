@@ -21,6 +21,7 @@ from unet_variants.metrics.binary import BinarySegmentationMetrics
 from unet_variants.utils.logging import MLFlowLogger
 from unet_variants.utils.early_stopping import EarlyStopping
 from unet_variants.utils.visualization import choose_visualizer
+from unet_variants.utils.seed import set_seed
 from unet_variants.utils.io import is_file
 
 class ExperimentManager:
@@ -88,7 +89,7 @@ class ExperimentManager:
 
     def _prepare_training_state(self) -> None:
         """Initialize counters/metrics/seed and best weights."""
-        # self._set_all_seeds(int(getattr(self.cfg.train, "seed", 42)))
+        set_seed(self.cfg.project.seed)
         self.num_epochs = self.cfg.train.epochs
         self.vis_interval = self.cfg.train.vis.interval
         self.vis_sample_size = self.cfg.train.vis.sample_size
@@ -132,7 +133,8 @@ class ExperimentManager:
     def resume(self, run_id: str) -> None:
         """Resume training from the last checkpoint of a prior run."""
         self.ensure_run_exist(run_id)
-        self._generate_model_report()
+        # self._generate_model_report()
+        self._log_run_metadata()
         # Load state from checkpoint
         ckpt_path = self.logger.artifact_path("latest.pth")
         assert is_file(ckpt_path), f"Checkpoint not found at: {ckpt_path}."

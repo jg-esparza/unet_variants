@@ -19,9 +19,7 @@ def main(cfg: DictConfig) -> None:
     if cfg.project.use_pretrained_ckpt:
         print("===Use pretrained checkpoint active---")
         exp.load_pretrained_ckpt()
-    # exp.run()
-    # exp.resume(run_id="feb8a8e63f164dff90ac1cc858d5048e")
-    # exp.evaluate_run(run_id="feb8a8e63f164dff90ac1cc858d5048e")
+    exp.run()
 
 if __name__ == "__main__":
     main()

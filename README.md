@@ -1,4 +1,4 @@
-# UNet Variants for Binary Segmentation (CNN · Transformers · Mamba)
+# U‑Net Benchmarking Framework (CNN · Transformers · Mamba)
 
 A modular, extensible, and reproducible framework for benchmarking CNN‑based, Transformer‑based, and SSM‑based UNet architectures for binary medical image segmentation.
 

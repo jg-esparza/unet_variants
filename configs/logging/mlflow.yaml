@@ -7,6 +7,7 @@ temp_path: ${logging.mlruns_path}/temp
 tracking_uri: file:${logging.mlruns_path}
 experiment_name: seg_${task.key}_${dataset.name}_${dataset.image_size}
 run_name: ${model.name}_bs${train.batch_size}_lr${train.optim.params.lr}_${now:%Y%m%d_%H%M%S}
+run_id: null # for resume training
 
 
 system_metrics:
@@ -34,7 +35,7 @@ params:
   weight_decay: ${train.optim.params.weight_decay}
   scheduler: ${train.scheduler.name}
   batch_size: ${train.batch_size}
-  image_size: ${data.image_size}
+  image_size: ${dataset.image_size}
   epochs: ${train.epochs}
   mixed_precision: ${train.amp}
   trainable_params: None
