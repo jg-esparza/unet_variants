@@ -117,12 +117,7 @@ python scripts/train.py model=<model_name>
 
 Artifacts saved in `runs/mlruns/<experiment_id>/<run_id>/artifacts/`
 
-### 3. Resume a training experiment
-```
-python scripts/resume.py model=<model_name> logging.run_id=<run_id>
-```
-
-### 4. View MLflow dashboard
+### 3. View MLflow dashboard
 ```
 mlflow server --backend-store-uri ./runs/mlruns
 ```
@@ -132,6 +127,17 @@ Open the URL to inspect:
 - Model parameters
 - Artifacts (checkpoints, sample predictions, failure cases)
 - Metrics across experiments
+
+### 4. Resume an experiment
+Option to resume an experiment if interrupted by using the run_id from mlflow.
+```
+python scripts/resume.py logging.run_id=<run_id>
+```
+
+### 5. Evaluate an experiment
+```
+python scripts/evaluate.py logging.run_id=<run_id>
+```
 
 --- 
 
