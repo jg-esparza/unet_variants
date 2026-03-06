@@ -133,13 +133,14 @@ class ExperimentManager:
     def resume(self, run_id: str) -> None:
         """Resume training from the last checkpoint of a prior run."""
         self.ensure_run_exist(run_id)
-        # self._generate_model_report()
-        self._log_run_metadata()
+        self._generate_model_report()
         # Load state from checkpoint
         ckpt_path = self.logger.artifact_path("latest.pth")
         assert is_file(ckpt_path), f"Checkpoint not found at: {ckpt_path}."
-        self._load_ckpt(ckpt_path)
-        if self.start_epoch > self.num_epochs:
+        if not self._load_ckpt(ckpt_path):
+            print("Checkpoint not found, aborting.")
+            return
+        if self.trained_completed():
             print("Training completed.")
             return
         # Continue the run under the same MLflow run_id
@@ -177,6 +178,10 @@ class ExperimentManager:
                 print(f"Failed to load pretrained checkpoint from {pretrained_ckpt_path}. Error: {e}")
         else:
             print(f"Pretrained checkpoint not found at: {pretrained_ckpt_path}. Skipping load.")
+
+    def trained_completed(self) -> bool:
+        """Validate number of epochs to pending to run."""
+        return self.start_epoch > self.num_epochs
 
     def _select_device(self) -> torch.device:
         """Select a compute device."""
@@ -302,7 +307,7 @@ class ExperimentManager:
             "scheduler_state_dict": self.scheduler.state_dict(),
             }, self.logger.artifact_path("latest.pth"))
 
-    def _load_ckpt(self, ckpt_path: str) -> None:
+    def _load_ckpt(self, ckpt_path: str) -> bool:
         """
         Load the latest checkpoint from the logger's artifact path and
         restore training state.
@@ -318,8 +323,10 @@ class ExperimentManager:
             self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
             self.start_epoch = saved_epoch + 1
             print(f"Loaded checkpoint successfully from: {ckpt_path}")
+            return True
         except Exception as e:
             print(f"Failed to load pretrained checkpoint from {ckpt_path}. Error: {e}")
+            return False
 
     def save_prediction_sample(self, epoch: Optional[int] = None) -> None:
         """
