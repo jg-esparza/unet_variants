@@ -112,13 +112,17 @@ ONNX saved in `runs/onnx/`
 ### 2. Run a training experiment
 
 ```
-python scripts/train.py model=<model_name> dataset=<dataset_name>
+python scripts/train.py model=<model_name>
 ```
 
 Artifacts saved in `runs/mlruns/<experiment_id>/<run_id>/artifacts/`
 
+### 3. Resume a training experiment
+```
+python scripts/resume.py model=<model_name> logging.run_id=<run_id>
+```
 
-### 3. View MLflow dashboard
+### 4. View MLflow dashboard
 ```
 mlflow server --backend-store-uri ./runs/mlruns
 ```
