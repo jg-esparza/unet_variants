@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-from typing import Optional, Tuple, Dict, Any
-import json
-import os
+from typing import Optional, Tuple, Dict
 
 import torch
 from torch import nn
@@ -19,8 +17,6 @@ class FlopsResult:
     ----------
     flops:
         Estimated FLOPs for a forward pass (may be None if profiling unavailable).
-    macs:
-        Estimated MACs for a forward pass (may be None).
     params:
         Parameter count reported by the profiler (may be None).
     input_size:
@@ -29,7 +25,6 @@ class FlopsResult:
         Optional note about profiling assumptions (batch normalization, etc.).
     """
     flops: Optional[float]
-    macs: Optional[float]
     params: Optional[int]
     input_size: Tuple[int, int, int, int]
     note: str = "FLOPs approximated as 2 * MACs (common convention)."
@@ -75,17 +70,16 @@ def estimate_flops_thop(
     try:
         from thop import profile
     except ImportError:
-        return FlopsResult(flops=None, macs=None, params=None, input_size=input_size, note="THOP not installed.")
+        return FlopsResult(flops=None, params=None, input_size=input_size, note="THOP not installed.")
 
     b, c, h, w = input_size
     x = torch.randn(b, c, h, w, device=device)
 
     try:
-        macs, params = profile(model, inputs=(x,), verbose=False)
-        flops = 2.0 * macs
-        return FlopsResult(flops=float(flops), macs=float(macs), params=int(params), input_size=(b, c, h, w))
+        flops, params = profile(model, inputs=(x,), verbose=False)
+        return FlopsResult(flops=float(flops), params=int(params), input_size=(b, c, h, w))
     except Exception:
-        return FlopsResult(flops=None, macs=None, params=None, input_size=(b, c, h, w), note="THOP profiling failed.")
+        return FlopsResult(flops=None, params=None, input_size=(b, c, h, w), note="THOP profiling failed.")
 
 
 def format_flops(result: FlopsResult) -> str:
@@ -106,9 +100,8 @@ def format_flops(result: FlopsResult) -> str:
     lines = [
         "=== FLOPs / MACs Report ===",
         f"Input size: (B={b}, C={c}, H={h}, W={w})",
-        f"MACs:  {result.macs}  ({_human_units(result.macs)} MACs)",
         f"FLOPs: {result.flops} ({_human_units(result.flops)} FLOPs)",
-        f"Params (profiler): {result.params if result.params is not None else 'N/A'}",
+        f"Params (profiler): {result.params if result.params is not None else 'N/A'} ({_human_units(result.params)} Parameters)",
         f"Note: {result.note}",
     ]
     return "\n".join(lines)

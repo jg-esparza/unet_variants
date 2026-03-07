@@ -14,6 +14,7 @@ classifier: seg
 pretrained_ckpt: R50+ViT-B_16.npz
 
 # Encoder
+encoder: ResNet50
 resnet:
   num_layers: [3, 4, 9]
   width_factor: 1

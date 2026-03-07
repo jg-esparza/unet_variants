@@ -27,8 +27,10 @@ def main(cfg: DictConfig) -> None:
         export_flops_report=cfg.inspect.flops_thop.export_report,
         save_flops_txt=cfg.inspect.flops_thop.save_txt,
         save_flops_json=cfg.inspect.flops_thop.save_json,
-        export_onnx_path=(cfg.inspect.export_onnx.path if cfg.inspect.export_onnx.enable else None)
+        export_onnx=cfg.inspect.export_onnx.enable,
+        export_onnx_path=cfg.inspect.export_onnx.path
     )
+    print(report)
 
 if __name__ == "__main__":
     main()

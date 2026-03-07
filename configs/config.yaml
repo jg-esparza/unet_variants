@@ -1,6 +1,6 @@
 # configs/config.yaml
 defaults:
-  - model: resnet_unet
+  - model: resunet
   - dataset: isic2017
   - task: binary
   - inspect: default
@@ -27,10 +27,17 @@ paths:
   data_dir: ${paths.repo_root}/data
   pretrained_ckpt: ${paths.repo_root}/pretrained_ckpt/${model.pretrained_ckpt}
   runs_dir: ${paths.repo_root}/runs
-  onnx_dir: ${paths.runs_dir}/onnx
+  report_dir: ${paths.runs_dir}/reports
 
 hydra:
   run:
-    dir: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${now:%H-%M-%S}_${model.name}_${dataset.name}
+    # Single-run outputs (already in your config)
+    dir: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${model.name}_${dataset.name}_${now:%H-%M-%S}
+  sweep:
+    # Parent directory for a multirun (one folder per sweep)
+    dir: ${paths.runs_dir}/hydrasweeps/${now:%Y-%m-%d}/${dataset.name}_${now:%H-%M-%S}
+    # Subdirectory template for each job in the sweep
+    # Include model/dataset and a unique counter to avoid collisions
+    subdir: ${hydra.job.num}_${model.name}
   job:
     chdir: false

@@ -4,20 +4,20 @@ name: inspect
 batch_size: 1
 in_channels: ${dataset.in_channels}
 image_size: ${dataset.image_size}
-export_path: ${paths.runs_dir}/hydraruns/${now:%Y-%m-%d}/${now:%H-%M-%S}_${model.name}_${dataset.name}
+export_path: ${paths.report_dir}/models_on_img_${dataset.image_size}_inspect_bs${inspect.batch_size}/${model.name}
 torchinfo_summary:
     print_summary: True
-    export_summary: False
-    export_path: ${inspect.export_path}/summary_${model.name}.txt
+    export_summary: True
+    export_path: ${inspect.export_path}/torchsummary.txt
 
 flops_thop:
   print_report: True
-  export_report: False
-  save_txt: ${inspect.export_path}/flops_${model.name}.txt
-  save_json: ${inspect.export_path}/flops_${model.name}.json
+  export_report: True
+  save_txt: ${inspect.export_path}/flops_txt.txt
+  save_json: ${inspect.export_path}/flops_json.json
 
 export_onnx:
   enable: True
-  path: ${paths.onnx_dir}/${model.name}_${dataset.in_channels}_${dataset.image_size}.onnx
+  path: ${inspect.export_path}/${model.name}_onnx.onnx
   view: False
   port: 8081

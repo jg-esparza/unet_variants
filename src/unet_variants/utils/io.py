@@ -1,12 +1,12 @@
-
 from __future__ import annotations
 
+import os
+import csv
 import json
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Any, Union
-
+from typing import Any, Union, Dict, List
 
 PathLike = Union[str, Path]
 
@@ -17,6 +17,11 @@ def ensure_dir(path: PathLike) -> Path:
     p.mkdir(parents=True, exist_ok=True)
     return p
 
+def make_path(path:str, file:str) -> str:
+    """Create path if it doesn't exist and return it as Path."""
+    file_path = os.path.join(path, file)
+    ensure_dir(os.path.dirname(file_path))
+    return file_path
 
 def is_non_empty_dir(path: PathLike) -> bool:
     """Return True if path exists and contains at least one entry."""
@@ -27,6 +32,9 @@ def is_file(path: PathLike) -> bool:
     """Return True if path exists and contains at least one entry."""
     p = Path(path)
     return p.is_file()
+
+def file_not_exist(path: PathLike) -> bool:
+    return not os.path.exists(path)
 
 def save_text(text: str, path: PathLike, encoding: str = "utf-8") -> Path:
     """Save text to a file, ensuring parent directory exists."""
@@ -77,3 +85,11 @@ def extract_zip(zip_path: PathLike, dst_dir: PathLike, *, overwrite: bool = True
         zf.extractall(dst_dir)
 
     return dst_dir
+
+def write_csv_row(csv_path:str, columns:List[str], records: Dict[str, Any]) -> None:
+    is_new = file_not_exist(csv_path)
+    with open(csv_path, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=columns)
+        if is_new:
+            writer.writeheader()
+        writer.writerow(records)

@@ -25,12 +25,12 @@ Easily plug in new architectures, loss function, optimizers and schedulers.
 ---
 ## 🧬 Supported Architectures
 ### CNN‑based
-- **UNet** (unet). Classic encoder–decoder segmentation network.
-- **ResNet+UNet** (resnet_unet). UNet using ResNet34 backbone for feature extraction.
+- **UNet**. Classic encoder–decoder segmentation network built from scratch.
+- **ResUNet**. ResNet34 backbone from `torchvision` + UNet decoder.
 
 ### Transformer‑based
-- **TransUNet**(transunet). Hybrid CNN-Vit.
-- **Swin‑UNet**(swinunet). Hierarchical windowed‑attention transformer adapted to segmentation.
+- **TransUNet**. Hybrid CNN-Vit follows original config.
+- **Swin‑UNet**. Hierarchical windowed‑attention transformer, follows original config.
 
 ---
 
@@ -52,6 +52,28 @@ Currently supported:
 - Sensitivity
 - Specificity
 ---
+
+
+## 🧪 Computational Benchmark
+
+Results measured with Input size: (1×3×224×224).
+
+<!-- BEGIN_BENCHMARK_TABLE -->
+|   Model   | Params (M) | FLOPs (G) | Estimated Total Size (MB) |
+|:---------:|:---------:|:---------:|:-------------------------:|
+|   UNet    |   18.02   |   20.22   |          341.23           |
+|  ResUNet  |   24.40   |   5.34    |          175.79           |
+| TransUNet |  105.28   |   24.67   |          834.64           |
+| Swin‑UNet |   27.17   |   5.91    |          405.22           |
+
+<!-- END_BENCHMARK_TABLE -->
+
+**Measured**: 
+
+- Params - `torchinfo`
+- FLOPs - `ultralytics-thop`.
+
+
 ## 📁 Repository Structure
 ```markdown
 unet_variants/
@@ -108,14 +130,29 @@ This generates:
 
 ONNX saved in `runs/onnx/`
 
-
 ### 2. Run a training experiment
 
 ```
 python scripts/train.py model=<model_name>
 ```
 
-Artifacts saved in `runs/mlruns/<experiment_id>/<run_id>/artifacts/`
+Artifacts saved in `runs/mlruns/<experiment_id>/<run_id>/artifacts/`.
+
+### 3. Run multiples experiments
+Run in **Linux** for all available models. 
+
+```
+./scripts/bench.sh
+```
+Only Inference benchmark enabled.
+To enable segmentation update `segmentation_bench` in `configs/benchmark.yaml`.
+
+Run it manually as:
+```
+python ./scripts/benchmark.py -m +benchmark=benchmark model=<model_name1>,<model_name2>
+```
+
+Csv file with inference results saved in `runs/reports/<experiment_name>/<date_time>/`.
 
 ### 3. View MLflow dashboard
 ```

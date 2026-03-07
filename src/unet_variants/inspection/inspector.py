@@ -147,17 +147,6 @@ class ModelInspector:
         file paths for artifacts (summary/flops reports/onnx).
         """
         total, trainable = self.count_params()
-        """
-        summary_path = None
-        if print_summary or save_summary_path:
-            self.summary(
-                input_size=input_size,
-                verbose=verbose,
-                print_summary=print_summary,
-                save_path=save_summary_path,
-            )
-            summary_path = save_summary_path
-        """
         self.model_summary(
             print_summary=print_summary,
             save_summary=export_summary,
@@ -179,7 +168,6 @@ class ModelInspector:
             total_params=total,
             trainable_params=trainable,
             flops=flops_result.flops,
-            macs=flops_result.macs,
             onnx_path=onnx_path,
             summary_path=save_summary_path,
             flops_txt_path=save_flops_txt,

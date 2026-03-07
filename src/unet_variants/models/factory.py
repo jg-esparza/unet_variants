@@ -18,7 +18,7 @@ class ModelFactory:
     """
     _BUILDERS: Dict[str, Callable[[Any], nn.Module]] = {
         "unet": lambda cfg: UNet(cfg),
-        "resnet_unet": lambda cfg: ResNetUnet(cfg),
+        "resunet": lambda cfg: ResNetUnet(cfg),
         "transunet": lambda cfg: TransUNet(cfg),
         "swinunet": lambda cfg: SwinUnet(cfg),
     }

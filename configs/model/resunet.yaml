@@ -1,4 +1,4 @@
-name: resnet_unet
+name: resunet
 family: CNN
 
 # I/O
