@@ -1,0 +1,28 @@
+
+defaults:
+  - config
+  - _self_
+
+bench_dir: ${paths.report_dir}/bench_img_${dataset.image_size}_inspect_bs${inspect.batch_size}/${now:%Y-%m-%d}_${now:%H-%M-%S}
+
+inference_bench: True
+segmentation_bench: False
+
+#Inspect
+torchinfo_summary:
+    print_summary: False
+    export_summary: True
+    export_path: ${bench_dir}/${model.name}/torchsummary.txt
+
+flops_thop:
+  print_report: False
+  export_report: True
+  save_txt: null # ${bench_dir}/${model.name}/flops_txt.txt
+  save_json: ${bench_dir}/${model.name}/flops_json.json
+
+export_onnx:
+  enable: True
+  path: ${bench_dir}/${model.name}/${model.name}_onnx.onnx
+  view: False
+  port: 8081
+
