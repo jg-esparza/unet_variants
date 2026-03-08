@@ -30,23 +30,3 @@ class Encoder(Module):
                 features.append(skip)
         x = self.conv_more(x)
         return x, features[::-1]
-
-import torch
-import ml_collections
-
-network_config = ml_collections.ConfigDict()
-network_config.encoder_in_channels = [3, 64, 128, 256]
-network_config.encoder_out_channels = [64, 128, 256, 512]
-network_config.n_skip = 4
-network_config.hidden_layers = 1024
-
-if __name__ == '__main__':
-    encoder = Encoder(network_config)
-    # print(encoder)
-    input_encoder = torch.randn(1, 3, 256, 256)
-    output, out_features = encoder(input_encoder)
-    print(output.size())
-    print(len(out_features))
-    for feature in out_features:
-         print(feature.size())
-    # print(features.size())

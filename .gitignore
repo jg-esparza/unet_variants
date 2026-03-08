@@ -48,7 +48,7 @@ runs/*
 # ML & Experiments artifacts
 # ------------------------------------------------------------------
 # MLflow (default local tracking)
-runs/mlruns/*
+mlruns/*
 
 # ------------------------------------------------------------------
 # Data (raw/processed)

@@ -16,8 +16,8 @@ project:
   seed: 42
   image_size: 224
   batch_size: 32
-  num_workers: 8
-  epochs: 100
+  num_workers: 1
+  epochs: 300
   use_pretrained_ckpt: False
 
 # NEW: paths group (works everywhere)

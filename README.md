@@ -32,6 +32,10 @@ Easily plug in new architectures, loss function, optimizers and schedulers.
 - **TransUNet**. Hybrid CNN-Vit follows original config.
 - **Swin‑UNet**. Hierarchical windowed‑attention transformer, follows original config.
 
+### SSM-based
+
+- **VM-UNet**. Coming soon.
+
 ---
 
 ## 📚 Supported Datasets
@@ -78,7 +82,7 @@ Results measured with Input size: (1×3×224×224).
 ```markdown
 unet_variants/
 │
-├── config/                      # Hydra configs (models, inspect, dataset, logging, training, evaluating)
+├── config/                      # Hydra configs (models, inspect, dataset, logging, training, evaluating, benchmarking)
 ├── data/                        # Place datasets here
 ├── runs/                        # Hydra, MLflow runs (auto-generated)
 ├── scripts/                     # Training, evaluation, benchmarking scripts
@@ -101,8 +105,8 @@ unet_variants/
 
 ### 1. Create environment
 ```
-conda create --name unet-variants python=3.11
-conda activate unet-variants
+conda create --name <env_name> python=3.11
+conda activate <env_name>
 ```
 
 ### 2. Install PyTorch + CUDA
@@ -128,7 +132,7 @@ This generates:
 - architecture summary
 - optional ONNX for visualization
 
-ONNX saved in `runs/onnx/`
+ONNX saved in `runs/reports/img_<dataset.image_size>_inspect_bs<inspect.batch_size>/<model.name>`
 
 ### 2. Run a training experiment
 
@@ -152,11 +156,11 @@ Run it manually as:
 python ./scripts/benchmark.py -m +benchmark=benchmark model=<model_name1>,<model_name2>
 ```
 
-Csv file with inference results saved in `runs/reports/<experiment_name>/<date_time>/`.
+Csv file with inference results saved in `runs/reports/bench_img_<dataset.image_size>_inspect_bs<inspect.batch_size>/<date_time>/`.
 
 ### 3. View MLflow dashboard
 ```
-mlflow server --backend-store-uri ./runs/mlruns
+mlflow server --backend-store-uri sqlite:///mlflow.db --port 5000
 ```
 Open the URL to inspect:
 

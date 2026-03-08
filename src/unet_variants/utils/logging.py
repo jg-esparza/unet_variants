@@ -9,15 +9,13 @@ from omegaconf import DictConfig
 import mlflow
 from mlflow.models import infer_signature
 
+import torch
+import torch.nn as nn
 import matplotlib.pyplot as plt
 
 from unet_variants.utils.io import is_non_empty_dir
 
 class MLFlowLogger:
-    """
-    A wrapper class to handle MLflow lifecycle, logging, and artifact management.
-    """
-
     """
     A lightweight wrapper around MLflow lifecycle, logging, and artifact management.
 
@@ -38,13 +36,15 @@ class MLFlowLogger:
         self.run_name = self.cfg.run_name
         self.experiment_name = self.cfg.experiment_name
 
+        # Tracking URI
         mlflow.set_tracking_uri(self.cfg.tracking_uri)
+
         # Create or get experiment
         exp = mlflow.get_experiment_by_name(self.experiment_name)
         if exp is None:
             mlflow.set_experiment(self.experiment_name)
             exp = mlflow.get_experiment_by_name(self.experiment_name)
-        self._setup_system_metrics_sampling()
+
         self.experiment_id = exp.experiment_id
         self.active_run = None
         self.run_id = None
@@ -83,7 +83,8 @@ class MLFlowLogger:
         self.active_run = mlflow.start_run(
             run_id=run_id,
             experiment_id=self.experiment_id,
-            run_name=self.cfg.run_name
+            run_name=self.cfg.run_name,
+            log_system_metrics=self.cfg.system_metrics,
         )
         self.run_id = self.active_run.info.run_id
         self.set_artifact_location()
@@ -98,7 +99,7 @@ class MLFlowLogger:
     def run_exist(self, run_id: str = None) -> bool:
         assert isinstance(run_id, str) and run_id, "Incorrect run_id provided."
         path = os.path.join(self.cfg.mlruns_path, self.experiment_id, run_id)
-        return True if is_non_empty_dir(path) else False
+        return True if is_non_empty_dir(os.path.dirname(path)) else False
 
     def set_artifact_location(self) -> None:
         """
@@ -110,12 +111,6 @@ class MLFlowLogger:
     def artifact_path(self, file: str) -> str:
         """Return a *local filesystem* path to a file inside the current run's artifact directory."""
         return os.path.join(self.artifact_location, file)
-
-    def _setup_system_metrics_sampling(self) -> None:
-        """Configure system metrics sampling, if supported by your MLflow version and config."""
-        mlflow.set_system_metrics_sampling_interval(self.cfg.system_metrics.sampling_interval)
-        mlflow.set_system_metrics_samples_before_logging(self.cfg.system_metrics.samples_before_logging)
-        mlflow.enable_system_metrics_logging()
 
     # ---------- Logging helpers ----------
     @staticmethod
@@ -141,26 +136,26 @@ class MLFlowLogger:
         mlflow.log_metrics(metrics, step=step)
 
     @staticmethod
-    def log_artifact(local_path: str, artifact_path: Optional[str] = None) -> None:
+    def log_artifact(local_path: str, artifact_path: str = None) -> None:
         """Log a single artifact."""
         mlflow.log_artifact(local_path, artifact_path=artifact_path)
 
     @staticmethod
     def log_figure(fig: plt.Figure, artifact_file: str) -> None:
-        """Log a single figure."""
+        """Log a single figure as an artifact."""
         mlflow.log_figure(fig, artifact_file=artifact_file)
 
-    def log_model(self, model, image):
-        predictions = model(image)
-        image = image.cpu()
+    def log_model(self, model:nn.Module, input_example:torch.Tensor) -> None:
+        """Log a PyTorch model as an artifact."""
+        # Create sample input and output for signature
+        predictions = model(input_example)
+        input_example = input_example.cpu()
         predictions = predictions.cpu()
-        signature = infer_signature(image.numpy(), predictions.detach().numpy())
-        # To specify pip requirements containing local version labels, please use `conda_env` or `pip_requirements`.
-        #torch version (2.4.1+cu121) and torchvision version (0.19.1+cu121)
+        # Infer signature from input/output
+        signature = infer_signature(input_example.numpy(), predictions.detach().numpy())
         mlflow.pytorch.log_model(
             model,
+            name=self.cfg.model_name,
             signature=signature,
-            input_example=image.numpy(),
-            artifact_path=self.artifact_path("pytorch_model")
+            input_example=input_example.numpy()
         )
-        print("Model logged!!")

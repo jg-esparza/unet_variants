@@ -127,6 +127,7 @@ class ExperimentManager:
         print("Starting new run {}".format(self.logger.run_id))
         self._log_run_metadata()
         self._run_training_loop()
+        self.log_best_model()
         self._evaluate()
         self.logger.end_run()
 
@@ -156,15 +157,23 @@ class ExperimentManager:
         self.ensure_run_exist(run_id)
         self._generate_model_report()
         # Load best model
-        best_model_path = self.logger.artifact_path("best.pth")
-        assert is_file(best_model_path), f"Best model not found at: {best_model_path}."
-        # Load best model
+        self.load_best_model()
         print(f"Evaluating run {self.logger.run_id}\n")
-        self.model.load_state_dict(torch.load(best_model_path, weights_only=True))
         self.model.to(self.device)
         self._evaluate()
 
     # ---------- Internal Helpers ----------
+
+    def _select_device(self) -> torch.device:
+        """Select a compute device."""
+        return torch.device(self.cfg.project.device if torch.cuda.is_available() else "cpu")
+
+    # ---------- Load Torch Models ----------
+    def load_best_model(self):
+        best_model_path = self.logger.artifact_path("best.pth")
+        assert is_file(best_model_path), f"Best model not found at: {best_model_path}."
+        self.model.load_state_dict(torch.load(best_model_path, weights_only=True))
+        print(f"Best model loaded from {best_model_path}")
 
     def load_pretrained_ckpt(self, path: Optional[str] = None) -> None:
         """Load a pretrained checkpoint from directory."""
@@ -183,10 +192,13 @@ class ExperimentManager:
         """Validate number of epochs to pending to run."""
         return self.start_epoch > self.num_epochs
 
-    def _select_device(self) -> torch.device:
-        """Select a compute device."""
-        return torch.device(self.cfg.project.device if torch.cuda.is_available() else "cpu")
+    def ensure_run_exist(self, run_id: str) -> None:
+        """Validate run existence."""
+        assert self.logger.run_exist(run_id=run_id), f"Run {run_id} not found."
+        self.logger.run_id = run_id
+        self.logger.set_artifact_location()
 
+    #---------- Training ----------
     def _run_training_loop(self) -> None:
         """
         Execute the core training loop across epochs:
@@ -207,21 +219,16 @@ class ExperimentManager:
             self.scheduler.step()
             # ---- Logging ----
             self.log_metrics(epoch, train_metrics, val_metrics, start_t)
-            # ---- Checkpoints ----
-            self._save_ckpt(epoch)
             # ---- Evaluate val loss ----
             self._save_best_model_if_best_loss(epoch, val_metrics["val/loss"])
             # ---- Sample images ----
             if epoch % self.vis_interval == 0:
                 self.save_prediction_sample(epoch)
+                # ---- Checkpoints ----
+                self._save_ckpt(epoch)
             # ---- Early Stopper ----
             if self.early_stopper.step(val_metrics["val/loss"]):
                 break
-
-    def ensure_run_exist(self, run_id: str) -> None:
-        assert self.logger.run_exist(run_id=run_id), f"Run {run_id} not found."
-        self.logger.run_id = run_id
-        self.logger.set_artifact_location()
 
     def _log_run_metadata(self) -> None:
         """
@@ -249,7 +256,6 @@ class ExperimentManager:
         self.logger.tags["total_params"] = int(report.total_params)
         self.logger.params["trainable_params"] = int(report.trainable_params)
         self.logger.params["flops"] = float(report.flops)
-        self.logger.params["macs"] = float(report.macs)
 
     def _current_lrs(self) -> float:
         """
@@ -328,6 +334,12 @@ class ExperimentManager:
             print(f"Failed to load pretrained checkpoint from {ckpt_path}. Error: {e}")
             return False
 
+    def log_best_model(self):
+        self.load_best_model()
+        input_example = torch.randn(1, self.cfg.dataset.in_channels, self.cfg.dataset.image_size,
+                                    self.cfg.dataset.image_size).to(self.device)
+        self.logger.log_model(model=self.model, input_example=input_example)
+
     def save_prediction_sample(self, epoch: Optional[int] = None) -> None:
         """
         Save sample predictions to MLflow artifacts:
@@ -354,12 +366,12 @@ class ExperimentManager:
         visualizer = choose_visualizer(sample_size=sample_size)
         if epoch is None:
             subtitle = f"Evaluation"
-            artifact_file = f"Evaluation_sample.png"
+            figure_name = f"Evaluation_sample.png"
         else:
             subtitle = f"Prediction sample epoch {epoch}"
-            artifact_file = f"Sample_{epoch}.png"
+            figure_name = f"Sample_{epoch}.png"
         fig = visualizer(subtitle=subtitle, images=images_cpu, masks=masks_cpu, preds=preds_cpu, sample_size=sample_size)
-        self.logger.log_figure(fig, artifact_file)
+        self.logger.log_figure(fig, figure_name)
 
     def _evaluate(self) -> None:
         metrics = evaluate(model=self.model, test_loader=self.val_loader, device=self.device, metrics=self.metrics)
