@@ -17,19 +17,10 @@ def main(cfg: DictConfig) -> None:
     # Build model from config
     model = ModelFactory.build(cfg.model).to(device)
     # Create inspector
-    inspector = ModelInspector(model=model, config=cfg.inspect, device=device)
+    inspector = ModelInspector(model=model, cfg=cfg.inspect, device=device)
     # Print summary / params / flops
-    report = inspector.report(
-        print_summary=cfg.inspect.torchinfo_summary.print_summary,
-        export_summary=cfg.inspect.torchinfo_summary.export_summary,
-        save_summary_path=cfg.inspect.torchinfo_summary.export_path,
-        print_flops_report=cfg.inspect.flops_thop.print_report,
-        export_flops_report=cfg.inspect.flops_thop.export_report,
-        save_flops_txt=cfg.inspect.flops_thop.save_txt,
-        save_flops_json=cfg.inspect.flops_thop.save_json,
-        export_onnx=cfg.inspect.export_onnx.enable,
-        export_onnx_path=cfg.inspect.export_onnx.path
-    )
+    inspector.model_summary()
+    report = inspector.get_report(verbose=True)
     print(report)
 
 if __name__ == "__main__":

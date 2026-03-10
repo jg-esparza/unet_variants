@@ -1,52 +1,29 @@
-
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Dict
 
 from omegaconf import DictConfig
 
 import torch
 from torch import nn
 
-from .summary import get_torchinfo_summary, save_torchinfo_summary
-from .flops import FlopsResult, estimate_flops_thop, format_flops, save_flops_report
-from .onnx import export_onnx_graph, view_onnx_graph
+from thop import profile
+from torchinfo import summary as torchinfo_summary
+
+from unet_variants.utils.io import save_text, is_file
 
 
-@dataclass
-class InspectionReport:
-    """
-    Output of a one-shot model inspection.
-
-    Attributes
-    ----------
-    total_params:
-        Total number of parameters in the model.
-    trainable_params:
-        Trainable parameters (requires_grad=True).
-    flops:
-        FLOPs estimate (may be None).
-    macs:
-        MACs estimate (may be None).
-    onnx_path:
-        ONNX export path (if exported).
-    summary_path:
-        Path to saved torchinfo summary (if saved).
-    flops_txt_path:
-        Path to saved FLOPs report (txt) (if saved).
-    flops_json_path:
-        Path to saved FLOPs report (json) (if saved).
-    """
-    total_params: int
-    trainable_params: int
-    flops: Optional[float] = None
-    macs: Optional[float] = None
-    onnx_path: Optional[str] = None
-    summary_path: Optional[str] = None
-    flops_txt_path: Optional[str] = None
-    flops_json_path: Optional[str] = None
-
+def to_readable_units(x: int) -> str:
+    """Convert a large scalar to readable units (K, M, G, T)."""
+    if x is None:
+        return "N/A"
+    units = ["", "K", "M", "G", "T", "P"]
+    v = float(x)
+    i = 0
+    while abs(v) >= 1000.0 and i < len(units) - 1:
+        v /= 1000.0
+        i += 1
+    return f"{v:.3f}{units[i]}"
 
 class ModelInspector:
     """
@@ -55,121 +32,102 @@ class ModelInspector:
     Provides:
     - parameter counts
     - torchinfo summary (string + optional file saving)
-    - FLOPs/MACs via THOP (structured + optional txt/json saving)
-    - ONNX export + view (no logging here yet)
+    - FLOPs via THOP (structured)
+    - ONNX export + view
     """
 
-    def __init__(self, model: nn.Module, config: DictConfig, device: Union[str, torch.device] = "cpu"):
+    def __init__(self, model: nn.Module, cfg: DictConfig, device: Union[str, torch.device] = "cpu"):
+        self.cfg = cfg
         self.device = torch.device(device)
         self.model = model.to(self.device).eval()
-        b = int(config.batch_size)
-        c = int(config.in_channels)  # recommended: interpolate from data.in_channels
-        h = int(config.image_size)
-        w = int(config.image_size)
-        self.input_size = (b, c, h, w)
+        self.b = int(self.cfg.batch_size)
+        self.c = int(self.cfg.in_channels)
+        self.h = int(self.cfg.image_size)
+        self.w = int(self.cfg.image_size)
+        self.input_size = (self.b, self.c,self.h, self.w)
 
-    def count_params(self) -> Tuple[int, int]:
+    def count_params(self, verbose: Optional[bool] = False) -> Tuple[int, int]:
+        """Estimate total number of parameters and trainable parameters."""
         total = sum(p.numel() for p in self.model.parameters())
         trainable = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        if verbose:
+            print(f"\n===Parameter Count==="
+                  f"\nTotal number of parameters: {total} ({to_readable_units(total)} Parameters)"
+                  f"\nTrainable parameters: {trainable} ({to_readable_units(trainable)} Parameters)")
         return int(total), int(trainable)
 
-    def model_summary(
-        self,
-        verbose: int = 0,
-        print_summary: bool = True,
-        save_summary: bool = False,
-        save_path: Optional[str] = None,
-    ) -> str:
-        """
-        Generate torchinfo summary as string, optionally print and/or save to file.
-        """
-        text = get_torchinfo_summary(self.model, self.input_size, self.device, verbose=verbose)
-
-        if print_summary:
-            print("\n=== torchinfo summary ===")
-            print(text)
-
-        if save_summary is not False:
-            save_torchinfo_summary(self.model, self.input_size, self.device, path=save_path, verbose=verbose)
-        return text
+    def estimate_flops_thop(self):
+        """Estimate FLOPs/MACs using THOP."""
+        return profile(self.model, inputs=(torch.randn(self.b, self.c, self.h, self.w, device=self.device),), verbose=False)
 
     @torch.no_grad()
-    def model_flops(
-        self,
-        print_report: bool = True,
-        save_report: bool = False,
-        save_txt: Optional[str] = None,
-        save_json: Optional[str] = None,
-    ) -> FlopsResult:
-        """
-        Estimate FLOPs/MACs via THOP, optionally print and/or save as txt/json.
-        """
-        result = estimate_flops_thop(
-            model=self.model,
+    def model_flops(self, verbose: Optional[bool] = False) -> Tuple[float, float]:
+        """Estimate FLOPs and parameters via THOP, optionally print."""
+        flops, params_profiler = self.estimate_flops_thop()
+        if verbose:
+            print("\n" + self.format_flops(flops, params_profiler))
+        return flops, params_profiler
+
+    def format_flops(self, flops: int, params_profiler:int) -> str:
+        """Format FLOPs/MACs results as a readable report string."""
+        lines = [
+            "=== FLOPs / Params (profiler) ===",
+            f"Input size: (B={self.b}, C={self.c}, H={self.h}, W={self.w})",
+            f"FLOPs: {flops} ({to_readable_units(flops)} FLOPs)",
+            f"Params (profiler): {params_profiler} ({to_readable_units(params_profiler)} Parameters)",
+        ]
+        return "\n".join(lines)
+
+    def model_summary(self, verbose: Optional[bool] = True, export: Optional[bool] = True) -> None:
+        """Generate torchinfo summary as string, optionally print and/or save to file."""
+        print("\n=== torchinfo summary ===")
+        summary = torchinfo_summary(
+            self.model,
             input_size=self.input_size,
-            device=self.device
+            device=str(self.device),
+            verbose=1 if verbose else 0,
+            col_names=("input_size", "output_size", "num_params", "kernel_size", "mult_adds"),
         )
+        if export:
+            try:
+                save_text(str(summary), self.cfg.summary_path)
+                print("=== Saved torchinfo summary ===")
+            except Exception as e:
+                print(f"Failed to save torchinfo summary: {e}")
 
-        if print_report:
-            print("\n" + format_flops(result))
-
-        if save_report:
-            save_flops_report(result, txt_path=save_txt, json_path=save_json)
-        return result
+    def get_report(self, verbose: Optional[bool] = False) -> Dict[str, int]:
+        """Get model report including parameter count and total operations"""
+        total_params, trainable_params = self.count_params(verbose)
+        flops, params_profiler = self.model_flops(verbose)
+        return {"model": self.cfg.model_name,
+                "input_size": self.input_size,
+                "total_params": total_params,
+                "trainable_params": trainable_params,
+                "flops": flops,
+                "params_profiler": params_profiler}
 
     @torch.no_grad()
-    def export_onnx(self, export_path: str, opset: int = 17) -> str:
-        """
-        Export ONNX graph. (Logging as MLflow artifact can be added in the runner later.)
-        """
-        return export_onnx_graph(self.model, export_path, self.input_size, self.device, opset=opset)
+    def export_onnx(self) -> None:
+        """Export ONNX graph."""
+        try:
+            torch.onnx.export(self.model,  # model being run
+                              torch.randn(self.b, self.c, self.h, self.w, device=self.device),  # model input (or a tuple for multiple inputs)
+                              self.cfg.onnxx_path,  # where to save the model (can be a file or file-like object)
+                              input_names=['input'],  # the model's input names
+                              output_names=['output'])
+        except RuntimeError as e:
+            print(f"Failed to export ONNX: {e}")
 
-    @staticmethod
-    def view_onnx(onnx_path: str, port: int = 8081, host: str = "127.0.0.1", browse: bool = True) -> None:
-        view_onnx_graph(onnx_path=onnx_path, host=host, port=port, browse=browse)
+    def view_onnx(self, port: int = 8081, host: str = "127.0.0.1", browse: bool = True) -> None:
+        """View ONNX graph if Netron is installed."""
+        if not is_file(self.cfg.onnxx_path):
+            raise FileNotFoundError(f"ONNX file not found: {self.cfg.onnxx_path}")
 
-    def report(
-        self,
-        print_summary: bool = False,
-        export_summary: bool = False,
-        save_summary_path: Optional[str] = None,
-        print_flops_report: bool = True,
-        export_flops_report: bool = False,
-        save_flops_txt: Optional[str] = None,
-        save_flops_json: Optional[str] = None,
-        export_onnx: bool = False,
-        export_onnx_path: Optional[str] = None,
-    ) -> InspectionReport:
-        """
-        Run a one-shot inspection pass and return a report.
-
-        This is designed to integrate cleanly with MLflow later by producing
-        file paths for artifacts (summary/flops reports/onnx).
-        """
-        total, trainable = self.count_params()
-        self.model_summary(
-            print_summary=print_summary,
-            save_summary=export_summary,
-            save_path=save_summary_path,
-        )
-
-        flops_result = self.model_flops(
-            print_report=print_flops_report,
-            save_report=export_flops_report,
-            save_txt=save_flops_txt,
-            save_json=save_flops_json,
-        )
-
-        onnx_path = None
-        if export_onnx:
-            onnx_path = self.export_onnx(export_onnx_path)
-
-        return InspectionReport(
-            total_params=total,
-            trainable_params=trainable,
-            flops=flops_result.flops,
-            onnx_path=onnx_path,
-            summary_path=save_summary_path,
-            flops_txt_path=save_flops_txt,
-            flops_json_path=save_flops_json,
-        )
+        try:
+            import netron
+            netron.start(self.cfg.onnxx_path, address=(host, port), browse=browse)
+            print(f"Netron started at http://{host}:{port} (showing {self.cfg.onnxx_path})")
+        except ImportError:
+            print("Netron is not installed.")
+            print("Option A: pip install netron and rerun view_onnx (jupyter notebook)")
+            print("Option B: open the file in the web viewer at https://netron.app/")

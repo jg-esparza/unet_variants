@@ -1,23 +1,17 @@
 # Configs model inspection
 name: inspect
-
+# Model
+model_name: ${model.name}
+# Input
 batch_size: 1
 in_channels: ${dataset.in_channels}
 image_size: ${dataset.image_size}
+
+# Paths to export
 export_path: ${paths.report_dir}/img_${dataset.image_size}_inspect_bs${inspect.batch_size}/${model.name}
-torchinfo_summary:
-    print_summary: True
-    export_summary: True
-    export_path: ${inspect.export_path}/torchsummary.txt
 
-flops_thop:
-  print_report: True
-  export_report: True
-  save_txt: ${inspect.export_path}/flops_txt.txt
-  save_json: ${inspect.export_path}/flops_json.json
+# Path to save summary from torchinfo
+summary_path: ${inspect.export_path}/torchsummary.txt
 
-export_onnx:
-  enable: True
-  path: ${inspect.export_path}/${model.name}_onnx.onnx
-  view: False
-  port: 8081
+# Path to save onnx file
+onnxx_path: ${inspect.export_path}/${model.name}_onnx.onnx
