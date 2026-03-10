@@ -42,6 +42,4 @@ params:
   # augmentation: ${}
 
 save_model_summary: True
-save_flops_report: True
 export_onnx: True
-save_model: False

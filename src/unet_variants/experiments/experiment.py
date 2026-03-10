@@ -22,7 +22,7 @@ from unet_variants.utils.logging import MLFlowLogger
 from unet_variants.utils.early_stopping import EarlyStopping
 from unet_variants.utils.visualization import choose_visualizer
 from unet_variants.utils.seed import set_seed
-from unet_variants.utils.io import is_file
+from unet_variants.utils.io import is_file, save_json
 
 class ExperimentManager:
     """
@@ -74,7 +74,7 @@ class ExperimentManager:
         self.model = ModelFactory.build(cfg=self.cfg.model)
         self.model.to(self.device)
         # Inspector
-        self.inspector = ModelInspector(model=self.model, config=self.cfg.inspect, device=self.device)
+        self.inspector = ModelInspector(model=self.model, cfg=self.cfg.inspect, device=self.device)
         # Loss Function
         self.criterion = LossFactory.build(cfg=self.cfg.train.loss)
         # Optimization strategy
@@ -101,40 +101,27 @@ class ExperimentManager:
 
     # ---------- Public API ----------
 
-    def model_summary(self) -> None:
+    def model_summary(self, verbose: Optional[bool] = True) -> None:
         """Print a formatted model summary from torchinfo."""
-        self.inspector.model_summary(print_summary = True,
-                                     save_summary = False,
-                                     save_path= None)
+        self.inspector.model_summary(verbose =verbose, export= self.cfg.logging.save_model_summary)
 
-    def model_flops(self) -> None:
+    def model_flops(self, verbose: Optional[bool] = True) -> None:
         """Print a FLOPs/MACs report to stdout."""
-        self.inspector.model_flops(print_report = True,
-                                   save_report = False,
-                                   save_txt = None,
-                                   save_json = None)
-
-    def model_onnx(self, view: bool = False) -> None:
-        """Export the current model to ONNX and optionally open a local viewer."""
-        onnx_path = self.inspector.export_onnx(export_path=self.cfg.inspect.export_onnx.path)
-        print("ONNX export path: {}".format(onnx_path))
-        if view:
-            self.inspector.view_onnx(onnx_path=onnx_path, port= 8081, host= "127.0.0.1", browse= True)
+        self.inspector.model_flops(verbose=verbose)
 
     def run(self) -> None:
         """Start a fresh MLflow run and execute the training loop."""
         self.logger.start_run()
         print("Starting new run {}".format(self.logger.run_id))
         self._log_run_metadata()
-        self._run_training_loop()
-        self.log_best_model()
+        self._train()
         self._evaluate()
         self.logger.end_run()
 
     def resume(self, run_id: str) -> None:
         """Resume training from the last checkpoint of a prior run."""
         self.ensure_run_exist(run_id)
-        self._generate_model_report()
+        self.inspector.model_flops(verbose=False)
         # Load state from checkpoint
         ckpt_path = self.logger.artifact_path("latest.pth")
         assert is_file(ckpt_path), f"Checkpoint not found at: {ckpt_path}."
@@ -147,15 +134,20 @@ class ExperimentManager:
         # Continue the run under the same MLflow run_id
         print(f"Resume training {self.logger.run_id} from checkpoint\n"
               f"Running from epoch {self.start_epoch} of {self.num_epochs}")
+
         self.logger.start_run(run_id=run_id)
-        self._run_training_loop()
+        self._train()
         self._evaluate()
         self.logger.end_run()
+
+    def _train(self):
+        self._run_training_loop()
+        self.log_best_model()
 
     def evaluate_run(self, run_id: str) -> None:
         """Evaluate best model from existing run."""
         self.ensure_run_exist(run_id)
-        self._generate_model_report()
+        self.inspector.model_flops(verbose=False)
         # Load best model
         self.load_best_model()
         print(f"Evaluating run {self.logger.run_id}\n")
@@ -221,11 +213,11 @@ class ExperimentManager:
             self.log_metrics(epoch, train_metrics, val_metrics, start_t)
             # ---- Evaluate val loss ----
             self._save_best_model_if_best_loss(epoch, val_metrics["val/loss"])
+            # ---- Checkpoints ----
+            self._save_ckpt(epoch)
             # ---- Sample images ----
             if epoch % self.vis_interval == 0:
                 self.save_prediction_sample(epoch)
-                # ---- Checkpoints ----
-                self._save_ckpt(epoch)
             # ---- Early Stopper ----
             if self.early_stopper.step(val_metrics["val/loss"]):
                 break
@@ -243,24 +235,14 @@ class ExperimentManager:
         Produce a model report (summary, FLOPs, and optional ONNX) and
         populate MLflow tags/params accordingly.
         """
-        report = self.inspector.report(print_summary=False,
-                                       export_summary=self.cfg.logging.save_model_summary,
-                                       save_summary_path=self.logger.artifact_path("summary.txt"),
-                                       print_flops_report=False,
-                                       export_flops_report=self.cfg.logging.save_flops_report,
-                                       save_flops_txt=self.logger.artifact_path("flops.txt"),
-                                       save_flops_json=self.logger.artifact_path("flops.json"),
-                                       export_onnx=self.cfg.logging.export_onnx,
-                                       export_onnx_path=self.logger.artifact_path("model.onnx")
-                                       )
-        self.logger.tags["total_params"] = int(report.total_params)
-        self.logger.params["trainable_params"] = int(report.trainable_params)
-        self.logger.params["flops"] = float(report.flops)
+        report = self.inspector.get_report(verbose=False)
+        self.logger.tags["total_params"] = int(report["total_params"])
+        self.logger.params["trainable_params"] = int(report["trainable_params"])
+        self.logger.params["flops"] = float(report["flops"])
+        save_json(report, path=self.logger.artifact_path("report.json"))
 
     def _current_lrs(self) -> float:
-        """
-        Return current learning rate from optimizer.
-        """
+        """Return current learning rate from optimizer."""
         return self.optimizer.state_dict()['param_groups'][0]['lr']
 
     @staticmethod

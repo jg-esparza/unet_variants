@@ -61,7 +61,7 @@ class ModelInspector:
         return profile(self.model, inputs=(torch.randn(self.b, self.c, self.h, self.w, device=self.device),), verbose=False)
 
     @torch.no_grad()
-    def model_flops(self, verbose: Optional[bool] = False) -> Tuple[float, float]:
+    def model_flops(self, verbose: Optional[bool] = True) -> Tuple[float, float]:
         """Estimate FLOPs and parameters via THOP, optionally print."""
         flops, params_profiler = self.estimate_flops_thop()
         if verbose:
@@ -100,6 +100,7 @@ class ModelInspector:
         total_params, trainable_params = self.count_params(verbose)
         flops, params_profiler = self.model_flops(verbose)
         return {"model": self.cfg.model_name,
+                "family": self.cfg.family,
                 "input_size": self.input_size,
                 "total_params": total_params,
                 "trainable_params": trainable_params,

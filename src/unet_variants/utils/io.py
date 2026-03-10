@@ -53,23 +53,7 @@ def save_json(obj: Any, path: PathLike, indent: int = 2, encoding: str = "utf-8"
 
 
 def extract_zip(zip_path: PathLike, dst_dir: PathLike, *, overwrite: bool = True) -> Path:
-    """
-    Extract a .zip archive into dst_dir.
-
-    Parameters
-    ----------
-    zip_path:
-        Path to the .zip archive.
-    dst_dir:
-        Destination directory.
-    overwrite:
-        If True, remove dst_dir first if it exists.
-
-    Returns
-    -------
-    Path
-        Destination directory path.
-    """
+    """Extract a .zip archive into dst_dir."""
     zip_path = Path(zip_path).expanduser().resolve()
     dst_dir = Path(dst_dir).expanduser().resolve()
 
@@ -86,7 +70,22 @@ def extract_zip(zip_path: PathLike, dst_dir: PathLike, *, overwrite: bool = True
 
     return dst_dir
 
+def append_to_aggregated_csv(
+        records: Dict[str, Any],
+        columns: List[str],
+        path: str,
+        file_name: str
+    ) -> None:
+    """
+    Append one or more benchmark records to a consolidated CSV table.
+    If the CSV doesn't exist, it's created with a header.
+    Returns the CSV path for convenience.
+    """
+    csv_path = make_path(path, file_name)
+    write_csv_row(csv_path, columns, records)
+
 def write_csv_row(csv_path:str, columns:List[str], records: Dict[str, Any]) -> None:
+    """Write a CSV row to a CSV file."""
     is_new = file_not_exist(csv_path)
     with open(csv_path, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=columns)
