@@ -109,7 +109,7 @@ conda activate <env_name>
 
 ### 2. Install PyTorch + CUDA
 ```
-pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu124
+pip install torch==2.9.0 torchvision==0.24.0 --index-url https://download.pytorch.org/whl/cu128
 ```
 
 ### 3. Install package locally
@@ -146,12 +146,11 @@ Run in **Linux** for all available models.
 ```
 ./scripts/bench.sh
 ```
-Only Inference benchmark enabled.
-To enable segmentation update `segmentation_bench` in `configs/benchmark.yaml`.
+Only Computational benchmark.
 
 Run it manually as:
 ```
-python ./scripts/benchmark.py -m +benchmark=benchmark model=<model_name1>,<model_name2>
+python ./scripts/computational_benchmark.py -m +computational_benchmark=computational_benchmark model=<model_name1>,<model_name2> project.image_size=256,512
 ```
 
 Csv file with inference results saved in `runs/reports/bench_img_<dataset.image_size>_inspect_bs<inspect.batch_size>/<date_time>/`.
