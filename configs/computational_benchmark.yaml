@@ -1,0 +1,46 @@
+defaults:
+  - base
+  - model: null
+  - dataset: isic2017
+  - task: binary
+  - _self_
+
+# Benchmark results directory
+bench_dir: ${paths.report_dir}/computational_benchmark/${now:%Y-%m-%d}_${now:%H-%M-%S}
+
+#csv file
+results_file: "computational_benchmark.csv"
+
+# csv columns
+columns: ["model",
+          "family",
+          "total_params",
+          "trainable_params",
+          "flops",
+          "params_profiler",
+          "input_size"]
+
+# ModelInspector
+inspect:
+  # Model
+  model_name: ${model.name}
+  family: ${model.family}
+  # Input
+  batch_size: 1
+  in_channels: ${dataset.in_channels}
+  image_size: ${project.image_size}
+
+  # Model Summary (torchinfo)
+  verbose: False
+
+  # Paths to export
+  export_path: ${bench_dir}/${model.name}
+
+  # Path to save report in json file
+  report_path: ${inspect.export_path}/report.json
+
+  # Path to save summary from torchinfo
+  summary_path: ${inspect.export_path}/torchsummary.txt
+
+  # Path to save onnx file
+  onnxx_path: ${inspect.export_path}/${model.name}_onnx.onnx

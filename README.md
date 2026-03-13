@@ -25,8 +25,7 @@ Easily plug in new architectures, loss function, optimizers and schedulers.
 ---
 ## 🧬 Supported Architectures
 ### CNN‑based
-- **UNet**. Classic encoder–decoder segmentation network built from scratch.
-- **ResUNet**. ResNet34 backbone from `torchvision` + UNet decoder.
+- **UNet**. Classic encoder–decoder segmentation network built from scratch. Optional use of **ResUNet** backbones from `torchvision`.
 
 ### Transformer‑based
 - **TransUNet**. Hybrid CNN-Vit follows original config.
@@ -34,7 +33,7 @@ Easily plug in new architectures, loss function, optimizers and schedulers.
 
 ### SSM-based
 
-- **VM-UNet**. Coming soon.
+- **VM-UNet**. In progress.
 
 ---
 
@@ -66,7 +65,6 @@ Results measured with Input size: (1×3×224×224).
 |   Model   | Params (M) | FLOPs (G) | Estimated Total Size (MB) |
 |:---------:|:---------:|:---------:|:-------------------------:|
 |   UNet    |   18.02   |   20.22   |          341.23           |
-|  ResUNet  |   24.40   |   5.34    |          175.79           |
 | TransUNet |  105.28   |   24.67   |          834.64           |
 | Swin‑UNet |   27.17   |   5.91    |          405.22           |
 

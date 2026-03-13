@@ -7,10 +7,11 @@ from unet_variants.models.components.modules import SegmentationHead
 class UNet(Module):
     def __init__(self, config):
         super().__init__()
-        self.encoder = Encoder(config)
-        self.decoder = Decoder(config)
-        self.segmentation_head = SegmentationHead(in_channels=config.decoder_channels[-1],
-                                                  out_channels=config.out_channels,
+        self.config = config.unet_config
+        self.encoder = Encoder(self.config)
+        self.decoder = Decoder(self.config)
+        self.segmentation_head = SegmentationHead(in_channels=self.config.decoder_channels[-1],
+                                                  out_channels=self.config.out_channels,
                                                   kernel_size=3,
                                                   upsampling=1)
 

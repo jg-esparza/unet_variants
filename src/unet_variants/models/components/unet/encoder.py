@@ -1,8 +1,9 @@
 from torch.nn import Module, ModuleList
 
 from unet_variants.models.components.modules import Conv2dReLU, DownSample
+from unet_variants.models.components.unet.resnet import ResNet
 
-class Encoder(Module):
+class EncoderBase(Module):
     def __init__(self, config):
         super().__init__()
         config.encoder_in_channels.insert(0, config.in_channels)
@@ -30,3 +31,17 @@ class Encoder(Module):
                 features.append(skip)
         x = self.conv_more(x)
         return x, features[::-1]
+
+class Encoder(Module):
+    def __init__(self, config):
+        super().__init__()
+        encoder_name = config.encoder
+        if encoder_name == "base":
+            self.encoder = EncoderBase(config)
+        elif "resnet" in encoder_name:
+            self.encoder = ResNet(encoder_name)
+        else:
+            raise NotImplementedError
+
+    def forward(self, x):
+        return self.encoder(x)

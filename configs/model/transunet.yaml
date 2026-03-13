@@ -1,17 +1,18 @@
-# ViT-B/16 configuration
-name: transunet
+# TransUNet
+architecture_name: transunet
 family: Transformers
 
-# I/O
-image_size: ${project.image_size}
-out_channels: ${task.out_channels}
+# Model name
+name: transunet_resnet50_vit-b/16
 
 classifier: seg
 
-# Pretrained model
-# IMPORTANT: Only file name, not full path
-# can be null or "" to disable pretrained loading
-pretrained_ckpt: R50+ViT-B_16.npz
+# I/O
+image_size: ${dataset.image_size}
+out_channels: ${task.out_channels}
+
+# Pretrained ckpt
+pretrained_ckpt: null
 
 # Encoder
 encoder: ResNet50
@@ -44,5 +45,5 @@ n_skip: 3
 
 vis: False
 zero_head: False
-representation_size: None
-resnet_pretrained_path: None
+representation_size: null
+resnet_pretrained_path: null

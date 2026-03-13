@@ -1,0 +1,22 @@
+# ResNet18 UNet
+name: resnet34
+
+# I/O
+out_channels: ${task.out_channels}
+
+# Pretrained ckpt
+pretrained_ckpt: null
+
+# Encoder
+encoder: resnet34
+
+# Depth
+n_skip: 4
+
+# Bottleneck
+hidden_layers: 512
+head_channels: 512
+
+# Decoder
+decoder_channels: [256, 128, 64, 16]
+skip_channels: [256, 128, 64, 64]

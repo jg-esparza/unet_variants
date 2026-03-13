@@ -1,8 +1,3 @@
-# Models:
-# model=<model1>,<model2>
-# available: unet,resunet,transunet,swinunet
+# Models available: unet,swinunet
 
-# Seeds:
-# project.seed
-
-python ./scripts/benchmark.py -m +benchmark=benchmark model=unet,resunet,swinunet project.seed=1,2,3
+python ./scripts/computational_benchmark.py -m +computational_benchmark=computational_benchmark model=unet,swinunet project.image_size=256,512,768,1024

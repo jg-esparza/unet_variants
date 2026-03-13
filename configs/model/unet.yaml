@@ -1,22 +1,13 @@
-# configs/model/unet.yaml
-name: unet
+# UNet configs
+defaults:
+  - unet_config: resnet34
+
+# Base UNet
+architecture_name: unet
 family: CNN
 
-# I/O
-in_channels: ${dataset.in_channels}
-out_channels: ${task.out_channels}
+# Model name
+name: unet_${model.unet_config.name}
 
-# Pretrained model
-# IMPORTANT: Only file name, not full path
-# can be null or "" to disable pretrained loading
+# Pretrained ckpt
 pretrained_ckpt: null
-
-encoder: Base
-n_skip: 4
-hidden_layers: 1024
-head_channels: 512
-
-encoder_in_channels: [64, 128, 256]
-encoder_out_channels: [64, 128, 256, 512]
-decoder_channels: [256, 128, 64, 16]
-skip_channels: [512, 256, 128, 64]
