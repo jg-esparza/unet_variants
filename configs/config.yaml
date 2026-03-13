@@ -1,11 +1,24 @@
 # configs/config.yaml
 defaults:
   - base
-  - model: swinunet
+  - model: transunet
   - dataset: isic2017
-  - task: binary
   - inspect: default
   - logging: mlflow
   - train: default
   - eval: default
   - _self_
+
+project:
+  # I/O
+  batch_size: 4
+  image_size: 224
+  augmentation: True
+  # Dataloaders
+  num_workers: 1
+  # Setup
+  device: cuda
+  seed: 42
+  # Training
+  epochs: 3
+  use_pretrained_ckpt: False

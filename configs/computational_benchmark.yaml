@@ -1,9 +1,18 @@
 defaults:
   - base
   - model: null
-  - dataset: isic2017
-  - task: binary
   - _self_
+
+project:
+  device: cuda
+  image_size: 256
+
+# I/O
+dataset:
+  name: "bench"
+  in_channels: 3
+  out_channels: 1
+
 
 # Benchmark results directory
 bench_dir: ${paths.report_dir}/computational_benchmark/${now:%Y-%m-%d}_${now:%H-%M-%S}

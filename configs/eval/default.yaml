@@ -1,7 +1,6 @@
 
-task: ${task.key}
+task: ${dataset.task}
 
 threshold: 0.5
-logits: False
 
 verbose: True

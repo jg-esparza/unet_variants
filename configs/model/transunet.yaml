@@ -9,7 +9,7 @@ classifier: seg
 
 # I/O
 image_size: ${dataset.image_size}
-out_channels: ${task.out_channels}
+out_channels: ${dataset.out_channels}
 
 # Pretrained ckpt
 pretrained_ckpt: null

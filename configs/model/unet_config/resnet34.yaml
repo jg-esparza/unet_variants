@@ -2,7 +2,7 @@
 name: resnet34
 
 # I/O
-out_channels: ${task.out_channels}
+out_channels: ${dataset.out_channels}
 
 # Pretrained ckpt
 pretrained_ckpt: null
@@ -20,3 +20,8 @@ head_channels: 512
 # Decoder
 decoder_channels: [256, 128, 64, 16]
 skip_channels: [256, 128, 64, 64]
+
+# Segmentation head
+segmentation_head:
+  kernel_size: 3
+  upsampling: 2

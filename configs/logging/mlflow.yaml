@@ -5,7 +5,7 @@ enable: True
 tracking_uri: "sqlite:///mlflow.db"
 
 mlruns_path: ${paths.repo_root}/mlruns
-experiment_name: seg_${task.key}_${dataset.name}_${dataset.image_size}
+experiment_name: seg_${dataset.name}_${dataset.image_size}
 run_name: ${model.name}_bs${train.batch_size}_lr${train.optim.params.lr}_seed${project.seed}
 run_id: null # for resume training
 model_name: ${model.name}_im${dataset.image_size}
@@ -14,15 +14,14 @@ system_metrics: True
 
 tags:
   framework: pytorch
-  task: ${task.name}
+  task: ${dataset.task}
   dataset: ${dataset.name}
   image_size: ${dataset.image_size}
   model_family: ${model.family}
-  encoder: ${model.encoder}
   loss_type: ${train.loss.name}
   seed: ${train.seed}
-  total_params: None
-  # augmentation: ${}
+  total_params: null
+  augmentation: ${project.augmentation}
 
 
 params:

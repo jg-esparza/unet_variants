@@ -1,7 +1,7 @@
 from torch.nn import Module, ModuleList
 
-from unet_variants.models.components.modules import Conv2dReLU, DownSample
-from unet_variants.models.components.unet.resnet import ResNet
+from unet_variants.models.cnn.components.modules import Conv2dReLU, DownSample
+from unet_variants.models.cnn.components.resnet import ResNet
 
 class EncoderBase(Module):
     def __init__(self, config):

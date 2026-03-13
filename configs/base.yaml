@@ -1,14 +1,3 @@
-project:
-  name: unet_variants
-  classifier: seg
-  device: cuda
-  seed: 42
-  image_size: 224
-  batch_size: 32
-  num_workers: 1
-  epochs: 300
-  use_pretrained_ckpt: False
-
 # Paths group
 paths:
   # repo root when running scripts (Hydra may chdir; we keep chdir false so cwd stays stable)

@@ -6,9 +6,10 @@ family: Transformers
 name: swinunet_patch${model.swin.patch_size}_window${model.swin.window_size}
 
 # I/O
-image_size: ${dataset.image_size}
 in_channels: ${dataset.in_channels}
-out_channels: ${task.out_channels}
+out_channels: ${dataset.out_channels}
+# Image Size
+image_size: ${project.image_size}
 
 # Dropout rate
 drop_rate: 0.0
