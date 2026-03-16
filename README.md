@@ -186,6 +186,7 @@ python scripts/evaluate.py logging.run_id=<run_id>
 - [TransUNet](https://github.com/Beckschen/TransUNet)
 - [Swin-Unet](https://github.com/HuCaoFighting/Swin-Unet)
 - [VM-UNet](https://github.com/JCruan519/VM-UNet)
-- [ISIC 2017](https://challenge.isic-archive.com/data/) Challenge Dataset (public dermoscopic images)
+- [ISIC 2017](https://challenge.isic-archive.com/data/#2017) Challenge Dataset (public dermoscopic images)
+- [ISIC 2018](https://challenge.isic-archive.com/data/#2018) Challenge Dataset (public dermoscopic images)
 
 Special thanks to the authors for providing their research and public resources.
