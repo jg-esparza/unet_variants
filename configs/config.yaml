@@ -1,8 +1,8 @@
 # configs/config.yaml
 defaults:
   - base
-  - model: transunet
-  - dataset: isic2017
+  - model: unet
+  - dataset: isic2018
   - inspect: default
   - logging: mlflow
   - train: default
@@ -11,7 +11,7 @@ defaults:
 
 project:
   # I/O
-  batch_size: 4
+  batch_size: 32
   image_size: 224
   augmentation: True
   # Dataloaders
@@ -20,5 +20,5 @@ project:
   device: cuda
   seed: 42
   # Training
-  epochs: 3
+  epochs: 300
   use_pretrained_ckpt: False

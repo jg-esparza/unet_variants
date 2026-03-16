@@ -1,16 +1,16 @@
-# configs/dataset/isic2017.yaml
+# configs/dataset/isic2018.yaml
 defaults:
   - augmentation
   - _self_
 
-name: isic2017
+name: isic2018
 task: binary
 split: 7:3
 
 # Data directory
 root: ${paths.data_dir}/${dataset.name}
 # Zip Data directory
-archive_path: ${dataset.root}.zip # e.g. /data/isic2017.zip
+archive_path: ${dataset.root}.zip
 
 # I/O
 in_channels: 3
@@ -21,5 +21,5 @@ image_size: ${project.image_size}
 
 norm:
   stats:
-    train: { mean: 159.922, std: 28.871 }
-    val:   { mean: 148.429, std: 25.748 }
+    train: { mean: 157.561, std: 26.706 }
+    val:   { mean: 149.034, std: 32.022 }

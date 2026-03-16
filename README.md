@@ -41,9 +41,10 @@ Easily plug in new architectures, loss function, optimizers and schedulers.
 
 Place datasets inside the `data/` folder following this structure:
 
-Currently supported:
+Divided into a 7:3 ratio, following prior procedure from [VM-UNet](https://github.com/JCruan519/VM-UNet)
 
-- **ISIC2017**. Divided into a 7:3 ratio, following prior procedure from [VM-UNet](https://github.com/JCruan519/VM-UNet).
+- ISIC2017
+- ISIC2018
 
 ---
 

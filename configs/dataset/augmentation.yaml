@@ -1,0 +1,7 @@
+# augmentation
+augment:
+  enabled: ${project.augmentation}
+  hflip: 0.5
+  vflip: 0.5
+  rotate_p: 0.2
+  rotate_deg: [0, 360]
