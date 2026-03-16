@@ -145,7 +145,7 @@ class MLFlowLogger:
         """Log a single figure as an artifact."""
         mlflow.log_figure(fig, artifact_file=artifact_file)
 
-    def log_model(self, model:nn.Module, input_example:torch.Tensor) -> None:
+    def log_model(self, model:nn.Module, input_example:torch.Tensor, conda_env: str) -> None:
         """Log a PyTorch model as an artifact."""
         # Create sample input and output for signature
         predictions = model(input_example)
@@ -157,5 +157,6 @@ class MLFlowLogger:
             model,
             name=self.cfg.model_name,
             signature=signature,
-            input_example=input_example.numpy()
+            input_example=input_example.numpy(),
+            conda_env=conda_env
         )

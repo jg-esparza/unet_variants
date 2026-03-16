@@ -81,12 +81,18 @@ Results measured with Input size: (1×3×224×224).
 ```markdown
 unet_variants/
 │
-├── config/                      # Hydra configs (models, inspect, dataset, logging, training, evaluating, benchmarking)
-├── data/                        # Place datasets here
-├── runs/                        # Hydra, MLflow runs (auto-generated)
-├── scripts/                     # Training, evaluation, benchmarking scripts
 ├── README.md
 ├── pyproject.toml
+├── data/                        # Place datasets here
+├── scripts/                     # Training, evaluation, benchmarking scripts
+├── pretrained_ckpt/             # Pretrained checkpoints
+├── config/                      # Hydra configs 
+    ├── dataset/                 
+    ├── model/                   
+    ├── inspect/
+    ├── logging/
+    ├── train/
+    └── eval/
 └── src/
     └── unet_variants/
         ├── data/                # Dataset loaders, augmentations        
@@ -102,20 +108,14 @@ unet_variants/
 
 ## ⚙️ Installation
 
-### 1. Create environment
+### 1. Create env from the `environment.yml` file
 ```
-conda create --name <env_name> python=3.11
-conda activate <env_name>
-```
-
-### 2. Install PyTorch + CUDA
-```
-pip install torch==2.9.0 torchvision==0.24.0 --index-url https://download.pytorch.org/whl/cu128
+conda env create -f environment.yml
 ```
 
-### 3. Install package locally
+### 2. Activate env
 ```
-pip install -e .
+conda activate unet-variants
 ```
 
 ## 🚀 Getting Started

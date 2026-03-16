@@ -141,7 +141,7 @@ class ExperimentManager:
         self.logger.end_run()
 
     def _train(self):
-        self._run_training_loop()
+        self._training_loop()
         self.log_best_model()
 
     def evaluate_run(self, run_id: str) -> None:
@@ -191,7 +191,7 @@ class ExperimentManager:
         self.logger.set_artifact_location()
 
     #---------- Training ----------
-    def _run_training_loop(self) -> None:
+    def _training_loop(self) -> None:
         """
         Execute the core training loop across epochs:
         - training epoch
@@ -324,7 +324,7 @@ class ExperimentManager:
         self.load_best_model()
         input_example = torch.randn(1, self.cfg.dataset.in_channels, self.cfg.dataset.image_size,
                                     self.cfg.dataset.image_size).to(self.device)
-        self.logger.log_model(model=self.model, input_example=input_example)
+        self.logger.log_model(model=self.model, input_example=input_example, conda_env=self.cfg.project.env)
 
     def save_prediction_sample(self, epoch: Optional[int] = None) -> None:
         """

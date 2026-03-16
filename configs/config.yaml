@@ -22,3 +22,5 @@ project:
   # Training
   epochs: 300
   use_pretrained_ckpt: False
+
+  env: ${paths.repo_root}/environment.yml
