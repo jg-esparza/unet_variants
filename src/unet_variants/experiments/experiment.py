@@ -22,7 +22,7 @@ from unet_variants.utils.logging import MLFlowLogger
 from unet_variants.utils.early_stopping import EarlyStopping
 from unet_variants.utils.visualization import choose_visualizer
 from unet_variants.utils.seed import set_seed
-from unet_variants.utils.io import is_file, save_json
+from unet_variants.utils.io import is_file, save_json, save_config_yaml
 
 class ExperimentManager:
     """
@@ -229,6 +229,10 @@ class ExperimentManager:
         self._generate_model_report()
         self.logger.set_tags(self.logger.tags)
         self.logger.log_params(self.logger.params)
+        save_config_yaml(self.cfg.project, path=self.logger.artifact_path("configs/project.yaml"))
+        save_config_yaml(self.cfg.model, path=self.logger.artifact_path("configs/model.yaml"))
+        save_config_yaml(self.cfg.dataset, path=self.logger.artifact_path("configs/dataset.yaml"))
+        save_config_yaml(self.cfg.train, path=self.logger.artifact_path("configs/training.yaml"))
 
     def _generate_model_report(self) -> None:
         """
@@ -239,7 +243,7 @@ class ExperimentManager:
         self.logger.tags["total_params"] = int(report["total_params"])
         self.logger.params["trainable_params"] = int(report["trainable_params"])
         self.logger.params["flops"] = float(report["flops"])
-        save_json(report, path=self.logger.artifact_path("report.json"))
+        save_json(report, path=self.logger.artifact_path("computational_report.json"))
 
     def _current_lrs(self) -> float:
         """Return current learning rate from optimizer."""

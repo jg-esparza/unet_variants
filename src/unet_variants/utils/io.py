@@ -7,6 +7,7 @@ import shutil
 import zipfile
 from pathlib import Path
 from typing import Any, Union, Dict, List
+from omegaconf import DictConfig, OmegaConf
 
 PathLike = Union[str, Path]
 
@@ -51,6 +52,11 @@ def save_json(obj: Any, path: PathLike, indent: int = 2, encoding: str = "utf-8"
     p.write_text(json.dumps(obj, indent=indent), encoding=encoding)
     return p
 
+def save_config_yaml(cfg: DictConfig, path: PathLike) -> None:
+    """Save a YAML configuration file to a file, ensuring parent directory exists."""
+    p = Path(path)
+    ensure_dir(p.parent if p.parent.as_posix() else ".")
+    OmegaConf.save(config=cfg, f=p)
 
 def extract_zip(zip_path: PathLike, dst_dir: PathLike, *, overwrite: bool = True) -> Path:
     """Extract a .zip archive into dst_dir."""
