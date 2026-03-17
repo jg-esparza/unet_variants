@@ -8,21 +8,22 @@ from omegaconf import DictConfig
 import torch
 from tqdm import tqdm
 
-from unet_variants.models.factory import ModelFactory
-from unet_variants.inspection.inspector import ModelInspector
-from unet_variants.loss.factory import LossFactory
-from unet_variants.optim.build_optim import OptimizerFactory
-from unet_variants.optim.build_scheduler import SchedulerFactory
-from unet_variants.dataset.loaders import build_dataloaders
-from unet_variants.engine.train import train_one_epoch
-from unet_variants.engine.validate import validate_one_epoch
-from unet_variants.engine.evaluate import evaluate
-from unet_variants.metrics.binary import BinarySegmentationMetrics
-from unet_variants.utils.logging import MLFlowLogger
-from unet_variants.utils.early_stopping import EarlyStopping
-from unet_variants.utils.visualization import choose_visualizer
-from unet_variants.utils.seed import set_seed
-from unet_variants.utils.io import is_file, save_json, save_config_yaml
+
+from factory.models import ModelFactory
+from factory.loss import LossFactory
+from factory.optim import OptimizerFactory
+from factory.scheduler import SchedulerFactory
+from dataset.loaders import build_dataloaders
+from engine.train import train_one_epoch
+from engine.validate import validate_one_epoch
+from engine.evaluate import evaluate
+from utils.model_inspection import ModelInspector
+from utils.logging import MLFlowLogger
+from utils.early_stopping import EarlyStopping
+from utils.metrics import BinarySegmentationMetrics
+from utils.visualization import choose_visualizer
+from utils.seed import set_seed
+from utils.io import is_file, save_json, save_config_yaml
 
 class ExperimentManager:
     """

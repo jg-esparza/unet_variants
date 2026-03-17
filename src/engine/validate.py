@@ -3,7 +3,7 @@ from typing import Dict
 import torch
 from torch.utils.data import DataLoader
 
-from unet_variants.metrics.binary import BinarySegmentationMetrics
+from utils.metrics import BinarySegmentationMetrics
 
 def validate_one_epoch(model: torch.nn.Module,
                        criterion: torch.nn.Module,

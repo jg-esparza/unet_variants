@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from omegaconf import DictConfig
 
-from unet_variants.utils.registries import review_registry_availability, validate_instance
+from factory.registries import review_registry_availability, validate_instance
 
 class LossFactory:
     """

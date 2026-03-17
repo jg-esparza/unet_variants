@@ -82,6 +82,7 @@ Results measured with Input size: (1×3×224×224).
 unet_variants/
 │
 ├── README.md
+├── environment.yml
 ├── pyproject.toml
 ├── data/                        # Place datasets here
 ├── scripts/                     # Training, evaluation, benchmarking scripts
@@ -94,14 +95,13 @@ unet_variants/
     ├── train/
     └── eval/
 └── src/
-    └── unet_variants/
-        ├── data/                # Dataset loaders, augmentations        
-        ├── engine/              # Train, val, evaluator
-        ├── loss/                # Losses
-        ├── metrics/             # Binary Segmentation(Dice, IoU, Acc, Sensitivity, Specificity)
-        ├── models/              # CNN, Transformer, SSM
-        ├── optim/               # Optimization strategy
-        └── utils/               # Helpers, logging, early stopper, visualization
+    ├── data/                    # Dataset loaders, augmentations        
+    ├── engine/                  # Experiment manager, train, validate, evaluate
+    ├── factory/                 # 
+    ├── metrics/                 # Binary Segmentation(Dice, IoU, Acc, Sensitivity, Specificity)
+    ├── models/                  # CNN, Transformer, SSM
+    ├── optim/                   # Optimization strategy
+    └── utils/                   # Helpers, logging, early stopper, visualization
 ```
 
 ---

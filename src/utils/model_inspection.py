@@ -10,7 +10,7 @@ from torch import nn
 from thop import profile
 from torchinfo import summary as torchinfo_summary
 
-from unet_variants.utils.io import save_text, is_file
+from utils.io import save_text, is_file
 
 
 def to_readable_units(x: int) -> str:

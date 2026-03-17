@@ -9,9 +9,9 @@ import numpy as np
 
 from scipy import ndimage
 
-from unet_variants.models.transformers.components.transunet.vit import Transformer, np2th
-from unet_variants.models.cnn.components.decoder import Decoder
-from unet_variants.models.cnn.components.modules import SegmentationHead
+from models.transformers.components.transunet.vit import Transformer, np2th
+from models.cnn.components.decoder import Decoder
+from models.cnn.components.modules import SegmentationHead
 
 class TransUNet(nn.Module):
     def __init__(self, config):

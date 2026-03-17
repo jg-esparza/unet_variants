@@ -5,7 +5,8 @@ from omegaconf import DictConfig
 import torch
 import torch.optim as optim
 
-from unet_variants.utils.registries import review_registry_availability, validate_instance
+from factory.registries import review_registry_availability
+
 
 class SchedulerFactory:
     """

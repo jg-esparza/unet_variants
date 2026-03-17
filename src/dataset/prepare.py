@@ -6,7 +6,7 @@ from pathlib import Path
 
 from omegaconf import DictConfig
 
-from unet_variants.utils.io import ensure_dir, is_non_empty_dir, extract_zip
+from utils.io import ensure_dir, is_non_empty_dir, extract_zip
 
 
 def ensure_extracted_dataset(cfg:DictConfig) -> Path:

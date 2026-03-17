@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unet_variants.utils.bootstrap import set_repo_root_env
+from utils.bootstrap import set_repo_root_env
 set_repo_root_env()  # must run before hydra.main
 
 import hydra
@@ -8,9 +8,9 @@ from omegaconf import DictConfig
 
 import torch
 
-from unet_variants.models.factory import ModelFactory
-from unet_variants.inspection.inspector import ModelInspector
-from unet_variants.utils.io import append_to_aggregated_csv, save_json
+from factory.models import ModelFactory
+from utils.model_inspection import ModelInspector
+from utils.io import append_to_aggregated_csv, save_json
 
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="computational_benchmark")

@@ -3,7 +3,7 @@ from typing import Dict
 import torch
 from torch.utils.data import DataLoader
 
-from unet_variants.metrics.binary import BinarySegmentationMetrics
+from utils.metrics import BinarySegmentationMetrics
 
 def evaluate(model: torch.nn.Module,
              test_loader: torch.utils.data.DataLoader,

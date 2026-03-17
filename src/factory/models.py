@@ -4,11 +4,11 @@ from typing import Callable, Dict, Any
 import torch.nn as nn
 from omegaconf import DictConfig
 
-from unet_variants.models.cnn.unet import UNet
-from unet_variants.models.transformers.transunet import TransUNet
-from unet_variants.models.transformers.swinunet import SwinUnet
+from models.cnn.unet import UNet
+from models.transformers.transunet import TransUNet
+from models.transformers.swinunet import SwinUnet
 
-from unet_variants.utils.registries import review_registry_availability, validate_instance
+from factory.registries import review_registry_availability, validate_instance
 
 class ModelFactory:
     """

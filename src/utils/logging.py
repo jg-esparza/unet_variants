@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
-from unet_variants.utils.io import is_non_empty_dir
+from utils.io import is_non_empty_dir
 
 class MLFlowLogger:
     """
