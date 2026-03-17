@@ -1,93 +1,105 @@
-# U‑Net Benchmarking Framework (CNN · Transformers · Mamba)
+# U‑Net Benchmarking Framework
 
-A modular, extensible, and reproducible framework for benchmarking CNN‑based, Transformer‑based, and SSM‑based UNet architectures for binary medical image segmentation.
+**CNN · Transformers · State‑Space Models (Mamba)**
 
-This repository provides a unified, configuration‑driven training and evaluation pipeline using Hydra, MLflow, and PyTorch, with full experiment logging, automatic checkpointing, predicted samples, ONNX export, and failure case analysis.
+A modular, extensible, and reproducible framework for benchmarking U‑Net variants across CNNs, Transformers, and State‑Space Models (SSMs) for medical image segmentation.
+This framework provides:
 
+- ⚙️ Hydra‑based configuration
+- 🔍 Model inspection: Params · FLOPs · Estimated Memory · ONNX export
+- 🧪 Unified training/evaluation engine 
+- 📊 Full MLflow experiment tracking
+- 🧱 Plug‑and‑play model/loss/optimizer factory
 ---
-## Features
+## ✨ Features
 
-### ⚙️ Hydra‑based configuration system
-Reproducible experiments with clean override support.
+### ⚙️ Hydra Configuration System
+Modular experiments with clean overrides and YAML‑based composition.
 
-### 📊 MLflow experiment tracking
-Logs system and segmentation metrics, hyperparameters, checkpoints, ONNX exports, predicted samples.
+### 🔍 Model Inspection Tools
+Compute:
+- FLOPs 
+- Parameter count
+- Memory footprint 
+- ONNX export
 
-### 🔍 Model inspection
-Params, FLOPs, inference speed, memory footprint.
+### 📊 MLflow Tracking
+Automatically logs metrics, hyperparameters, checkpoints, model graphs, predictions, and ONNX exports.
 
-### 🧪 Unified training/evaluation engine
-Dice, IoU, Accuracy, Sensitivity, Specificity.
+### 🧪 Unified Training & Evaluation
+Supports:
+- Dice 
+- mIoU 
+- Accuracy 
+- Sensitivity 
+- Specificity
 
-### 🧱 Modular model, loss and optimization strategy factories
-Easily plug in new architectures, loss function, optimizers and schedulers.
-
+### 🧱 Factory Modules
+Easily add:
+- New architectures 
+- Custom losses 
+- Optimizers 
+- Schedulers
 ---
+
 ## 🧬 Supported Architectures
 ### CNN‑based
-- **UNet**. Classic encoder–decoder segmentation network built from scratch. Optional use of **ResUNet** backbones from `torchvision`.
+
+- **UNet** — classic encoder‑decoder. Optional use of **ResUNet** backbones from `torchvision`.
 
 ### Transformer‑based
-- **TransUNet**. Hybrid CNN-Vit follows original config.
-- **Swin‑UNet**. Hierarchical windowed‑attention transformer, follows original config.
 
-### SSM-based
+- **TransUNet** — hybrid CNN + ViT 
+- **Swin‑UNet** — hierarchical windowed self‑attention
 
-- **VM-UNet**. In progress.
+### State‑Space Models
+
+- VM‑UNet (in progress)
 
 ---
 
 ## 📚 Supported Datasets
 
-Place datasets inside the `data/` folder following this structure:
-
-Divided into a 7:3 ratio, following prior procedure from [VM-UNet](https://github.com/JCruan519/VM-UNet)
+Datasets must follow the structure defined in configs/dataset/.
+Current support:
 
 - ISIC2017
 - ISIC2018
 
+Both follow a 7:3 split, consistent with prior work (e.g., [VM-UNet](https://github.com/JCruan519/VM-UNet)).
+
 ---
 
-## 📏 Evaluation Metrics
+## 📏 Computational Benchmark (224×224 Input)
 
-- Dice Similarity Coefficient
-- Mean Intersection over Union
-- Accuracy
-- Sensitivity
-- Specificity
----
-
-
-## 🧪 Computational Benchmark
-
-Results measured with Input size: (1×3×224×224).
 
 <!-- BEGIN_BENCHMARK_TABLE -->
-|   Model   | Params (M) | FLOPs (G) | Estimated Total Size (MB) |
-|:---------:|:---------:|:---------:|:-------------------------:|
-|   UNet    |   18.02   |   20.22   |          341.23           |
-| TransUNet |  105.28   |   24.67   |          834.64           |
-| Swin‑UNet |   27.17   |   5.91    |          405.22           |
-
+|      Model     | Params (M) | FLOPs (G) | Size (MB) |
+|:--------------:|:----------:|:---------:|:---------:|
+| UNet(ResNet34) |    26.76   |    1.78   |   132.71  |
+|    TransUNet   |   105.28   |   24.67   |   834.64  |
+|    Swin‑UNet   |    27.17   |    5.91   |   405.22  |
 <!-- END_BENCHMARK_TABLE -->
 
-**Measured**: 
+Computed using
 
-- Params - `torchinfo`
-- FLOPs - `ultralytics-thop`.
+- torchinfo (parameters)
+- ultralytics-thop (FLOPs)
 
+---
 
 ## 📁 Repository Structure
 ```markdown
 unet_variants/
 │
 ├── README.md
+├── LICENSE
 ├── environment.yml
 ├── pyproject.toml
-├── data/                        # Place datasets here
-├── scripts/                     # Training, evaluation, benchmarking scripts
+├── data/                        # Dataset folders (ignored by git)
+├── scripts/                     # Training, evaluation, benchmark scripts
 ├── pretrained_ckpt/             # Pretrained checkpoints
-├── config/                      # Hydra configs 
+├── configs/                     # Hydra configuration system
     ├── dataset/                 
     ├── model/                   
     ├── inspect/
@@ -95,87 +107,43 @@ unet_variants/
     ├── train/
     └── eval/
 └── src/
-    ├── data/                    # Dataset loaders, augmentations        
-    ├── engine/                  # Experiment manager, train, validate, evaluate
-    ├── factory/                 # 
-    ├── metrics/                 # Binary Segmentation(Dice, IoU, Acc, Sensitivity, Specificity)
-    ├── models/                  # CNN, Transformer, SSM
-    ├── optim/                   # Optimization strategy
-    └── utils/                   # Helpers, logging, early stopper, visualization
+    ├── data/                    # Datasets and augmentations       
+    ├── engine/                  # Train/validate/evaluate loops
+    ├── factory/                 # Model, loss, optimizer, scheduler builders
+    ├── models/                  # CNN, Transformer architectures
+    └── utils/                   # Logging, metrics, visualization, seed
 ```
 
 ---
 
-## ⚙️ Installation
+## 🚀 Quickstart
 
-### 1. Create env from the `environment.yml` file
+### Install environment
 ```
 conda env create -f environment.yml
-```
-
-### 2. Activate env
-```
 conda activate unet-variants
 ```
 
-## 🚀 Getting Started
-
-### 1. Run model inspection
+### Model inspection
 ```
-python scripts/model_inspect.py model=<model_name>
-```
-This generates:
-
-- FLOPs
-- parameter count
-- architecture summary
-- optional ONNX for visualization
-
-ONNX saved in `runs/reports/img_<dataset.image_size>_inspect_bs<inspect.batch_size>/<model.name>`
-
-### 2. Run a training experiment
-
-```
-python scripts/train.py model=<model_name>
+python scripts/model_inspect.py model=unet
 ```
 
-Artifacts saved in `runs/mlruns/<experiment_id>/<run_id>/artifacts/`.
-
-### 3. Run multiples experiments
-Run in **Linux** for all available models. 
+### Training
 
 ```
-./scripts/bench.sh
-```
-Only Computational benchmark.
-
-Run it manually as:
-```
-python ./scripts/computational_benchmark.py -m +computational_benchmark=computational_benchmark model=<model_name1>,<model_name2> project.image_size=256,512
+python scripts/train.py model=unet dataset=isic2017
 ```
 
-Csv file with inference results saved in `runs/reports/bench_img_<dataset.image_size>_inspect_bs<inspect.batch_size>/<date_time>/`.
+### Run computational benchmark with input 224,512, 1024
 
-### 3. View MLflow dashboard
+```
+./scripts/computational_bench.sh
+```
+
+### MLflow UI
 ```
 mlflow server --backend-store-uri sqlite:///mlflow.db --port 5000
-```
-Open the URL to inspect:
-
-- Training curves
-- Model parameters
-- Artifacts (checkpoints, sample predictions, failure cases)
-- Metrics across experiments
-
-### 4. Resume an experiment
-Option to resume an experiment if interrupted by using the run_id from mlflow.
-```
-python scripts/resume.py logging.run_id=<run_id>
-```
-
-### 5. Evaluate an experiment
-```
-python scripts/evaluate.py logging.run_id=<run_id>
 ```
 
 --- 
@@ -186,7 +154,6 @@ python scripts/evaluate.py logging.run_id=<run_id>
 - [TransUNet](https://github.com/Beckschen/TransUNet)
 - [Swin-Unet](https://github.com/HuCaoFighting/Swin-Unet)
 - [VM-UNet](https://github.com/JCruan519/VM-UNet)
-- [ISIC 2017](https://challenge.isic-archive.com/data/#2017) Challenge Dataset (public dermoscopic images)
-- [ISIC 2018](https://challenge.isic-archive.com/data/#2018) Challenge Dataset (public dermoscopic images)
+- [ISIC Challenges(2017,2018)](https://challenge.isic-archive.com/data/)
 
 Special thanks to the authors for providing their research and public resources.
