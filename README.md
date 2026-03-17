@@ -68,6 +68,8 @@ Current support:
 
 Both follow a 7:3 split, consistent with prior work (e.g., [VM-UNet](https://github.com/JCruan519/VM-UNet)).
 
+See docs/datasets.md for preparation instructions.
+
 ---
 
 ## 📏 Computational Benchmark (224×224 Input)
@@ -85,6 +87,8 @@ Computed using
 
 - torchinfo (parameters)
 - ultralytics-thop (FLOPs)
+
+More details in docs/benchmarks.md.
 
 ---
 
