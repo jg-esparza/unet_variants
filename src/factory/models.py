@@ -5,6 +5,7 @@ import torch.nn as nn
 from omegaconf import DictConfig
 
 from models.cnn.unet import UNet
+from models.cnn.attention_unet import AttU_Net
 from models.cnn.malunet import MALUNet
 from models.transformers.transunet import TransUNet
 from models.transformers.swinunet import SwinUnet
@@ -18,6 +19,7 @@ class ModelFactory:
     """
     _BUILDERS: Dict[str, Callable[[Any], nn.Module]] = {
         "unet": lambda cfg: UNet(cfg),
+        "att_unet": lambda cfg: AttU_Net(cfg),
         "malunet": lambda cfg: MALUNet(cfg),
         "transunet": lambda cfg: TransUNet(cfg),
         "swinunet": lambda cfg: SwinUnet(cfg),

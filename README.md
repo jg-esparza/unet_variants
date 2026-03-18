@@ -45,17 +45,24 @@ Easily add:
 ## 🧬 Supported Architectures
 ### CNN‑based
 
-- **UNet** — classic encoder‑decoder. Optional use of **ResUNet** backbones from `torchvision`
-- **MALUNet** — Muti-Attention UNet
+- **UNet**: Convolutional Networks for Biomedical Image SegmentationOptional use of **ResUNet** backbones from `torchvision`
+  - https://arxiv.org/abs/1505.04597
+- **Attention U-Net**: Learning Where to Look for the Pancreas
+  - https://arxiv.org/abs/1804.03999
+- **MALUNet**: A Multi-Attention and Light-weight UNet for Skin Lesion Segmentation
+  - https://arxiv.org/pdf/2211.01784
 
 ### Transformer‑based
 
-- **TransUNet** — hybrid CNN + ViT 
-- **Swin‑UNet** — hierarchical windowed self‑attention
+- **TransUNet**: Transformers Make Strong Encoders for Medical Image Segmentation
+  - https://arxiv.org/pdf/2102.04306
+- **Swin‑UNet**: Unet-like Pure Transformer for Medical Image Segmentation
+  - https://arxiv.org/pdf/2105.05537
 
 ### State‑Space Models
 
-- VM‑UNet (in progress)
+- **VM‑UNet**: Vision Mamba UNet for Medical Image Segmentation (in progress)
+  - https://arxiv.org/pdf/2402.02491
 
 ---
 
@@ -73,18 +80,17 @@ See docs/datasets.md for preparation instructions.
 
 ---
 
-## 📏 Computational Benchmark (224×224 Input)
+## 📏 Computational Benchmark (256×256 Input)
 
 
 <!-- BEGIN_BENCHMARK_TABLE -->
-|      Model     | Params (M) | FLOPs (G) | Size (MB) |
-|:--------------:|:----------:|:---------:|:---------:|
-| UNet(ResNet34) |    26.76   |    1.78   |   132.71  |
-|    TransUNet   |   105.28   |   24.67   |   834.64  |
-|    Swin‑UNet   |    27.17   |    5.91   |   405.22  |
+|          Model           | Params (M) | FLOPs (G) | Size (MB) |
+|:------------------------:|:----------:|:---------:|:---------:|
+|      UNet(ResNet34)      |    26.76   |   7.13    |  209.69   |
+| Swin‑UNet(Window Size 8) |    27.17   |   7.72    |  496.03   |
 <!-- END_BENCHMARK_TABLE -->
 
-Computed using
+Benchmark example, computed using
 
 - torchinfo (parameters)
 - ultralytics-thop (FLOPs)
@@ -156,6 +162,7 @@ mlflow server --backend-store-uri sqlite:///mlflow.db --port 5000
 ## 🙏 Acknowledgements
 
 - [U-Net](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
+- [Attention U-Net](https://github.com/ozan-oktay/Attention-Gated-Networks)
 - [MALUNet](https://github.com/JCruan519/MALUNet)
 - [TransUNet](https://github.com/Beckschen/TransUNet)
 - [Swin-Unet](https://github.com/HuCaoFighting/Swin-Unet)

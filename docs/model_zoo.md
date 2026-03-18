@@ -3,33 +3,40 @@
 This document describes all architectures supported by the framework.
 
 ---
+## Supported Models
 
-## 1. CNN‑Based Models
+### 1. CNN‑Based Models
 
-### UNet
+#### UNet (unet)
 Classic encoder–decoder built from scratch.
 
 Variants:
 - UNet
 - ResUNet (torchvision backbones)
 
-Strengths:
-- Robust for medical images
-- Low FLOPs
-- Easy to train
+#### Attention U-Net (att_unet)
 
-### MALUNet
+Features:
+- Gated attention mechanisms
+- AGs easy to integrated
+
+#### MALUNet (malunet)
 Muti-Attention and Light-weight UNet
 
 Features:
 - Gated attention mechanisms
-- External attention 
 - Multi-stage features
+
+#### CNN Strengths:
+- Robust for medical images
+- Low FLOPs
+- Easy to train
+
 ---
 
-## 2. Transformer‑Based Models
+### 2. Transformer‑Based Models
 
-### TransUNet
+#### TransUNet (transunet)
 CNN encoder (ResNet50) + ViT + U‑Net decoder.
 
 Features:
@@ -38,28 +45,33 @@ Features:
 
 ---
 
-## Swin‑UNet
+#### Swin‑UNet (swinunet)
 Hierarchical transformer using windowed attention.
 
-Benefits:
+Features:
+- Swin Transformer with shifted windows
 - Efficient local–global modeling
-- Low FLOPs
+
+#### Transformers Strengths:
+- Global modeling
 
 ---
 
-# 3. State‑Space Models (SSM)
+### 3. State‑Space Models (SSM)
 
-## VM‑UNet (in progress)
+#### VM‑UNet (in progress)
 U‑Net with VMamba blocks.
 
-Advantages:
+- Pure SSM-based
+- VSS blocks derived from [VMamaba](https://github.com/MzeroMiko/VMamba)
+
+#### SSM Strengths:
 - Linear complexity
 - Long‑range modeling without attention
-- Superior memory efficiency
 
 ---
 
-# Adding a New Model
+## Adding a New Model
 
 1. Implement model in `src/models/<family>`
 2. Register it in `src/factory/models.py`

@@ -1,0 +1,13 @@
+# Attention U-Net: From https://github.com/ozan-oktay/Attention-Gated-Networks, https://github.com/LeeJunHyun/Image_Segmentation
+architecture_name: att_unet
+family: CNN
+
+# Model name
+name: att_unet
+
+# I/O
+in_channels: ${dataset.in_channels}
+out_channels: ${dataset.out_channels}
+# Image Size
+image_size: ${project.image_size}
+
