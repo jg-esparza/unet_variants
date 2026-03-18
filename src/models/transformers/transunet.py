@@ -3,6 +3,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from omegaconf import DictConfig
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -14,17 +16,17 @@ from models.cnn.components.decoder import Decoder
 from models.cnn.components.modules import SegmentationHead
 
 class TransUNet(nn.Module):
-    def __init__(self, config):
+    def __init__(self, cfg: DictConfig):
         super(TransUNet, self).__init__()
-        self.classifier = config.classifier
-        self.transformer = Transformer(config, config.vis)
-        self.decoder = Decoder(config, conv_more=True)
+        self.classifier = cfg.classifier
+        self.transformer = Transformer(cfg, cfg.vis)
+        self.decoder = Decoder(cfg, conv_more=True)
         self.segmentation_head = SegmentationHead(
-            in_channels=config['decoder_channels'][-1],
-            out_channels=config['out_channels'],
+            in_channels=cfg['decoder_channels'][-1],
+            out_channels=cfg['out_channels'],
             kernel_size=3,
         )
-        self.config = config
+        self.cfg = cfg
 
     def forward(self, x):
         if x.size()[1] == 1:
@@ -34,7 +36,7 @@ class TransUNet(nn.Module):
         return self.segmentation_head(x)
 
     def load_from(self, path=None):
-        pretrained_path = self.config.pretrained_ckpt if path is None else path
+        pretrained_path = self.cfg.pretrained_ckpt if path is None else path
         with torch.no_grad():
             res_weight = pretrained_path
             self.transformer.embeddings.patch_embeddings.weight.copy_(np2th(pretrained_path["embedding/kernel"], conv=True))

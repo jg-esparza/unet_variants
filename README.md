@@ -45,7 +45,8 @@ Easily add:
 ## 🧬 Supported Architectures
 ### CNN‑based
 
-- **UNet** — classic encoder‑decoder. Optional use of **ResUNet** backbones from `torchvision`.
+- **UNet** — classic encoder‑decoder. Optional use of **ResUNet** backbones from `torchvision`
+- **MALUNet** — Muti-Attention UNet
 
 ### Transformer‑based
 
@@ -152,9 +153,10 @@ mlflow server --backend-store-uri sqlite:///mlflow.db --port 5000
 
 --- 
 
-🙏 Acknowledgements
+## 🙏 Acknowledgements
 
 - [U-Net](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
+- [MALUNet](https://github.com/JCruan519/MALUNet)
 - [TransUNet](https://github.com/Beckschen/TransUNet)
 - [Swin-Unet](https://github.com/HuCaoFighting/Swin-Unet)
 - [VM-UNet](https://github.com/JCruan519/VM-UNet)

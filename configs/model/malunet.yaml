@@ -1,0 +1,17 @@
+# MALUNet: From https://github.com/JCruan519/MALUNet
+architecture_name: malunet
+family: CNN
+
+# Model name
+name: malunet
+
+# I/O
+in_channels: ${dataset.in_channels}
+out_channels: ${dataset.out_channels}
+# Image Size
+image_size: ${project.image_size}
+
+c_list: [8, 16, 24, 32, 48, 64]
+
+split_att: fc
+bridge: True

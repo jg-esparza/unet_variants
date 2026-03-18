@@ -1,4 +1,4 @@
-# TransUNet
+# TransUNet: From https://github.com/Beckschen/TransUNet
 architecture_name: transunet
 family: Transformers
 
@@ -8,8 +8,9 @@ name: transunet_resnet50_vit-b/16
 classifier: seg
 
 # I/O
-image_size: ${dataset.image_size}
 out_channels: ${dataset.out_channels}
+# Image Size
+image_size: ${project.image_size}
 
 # Pretrained ckpt
 pretrained_ckpt: null

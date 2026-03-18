@@ -1,4 +1,4 @@
-# Swin-Unet
+# Swin-Unet: From https://github.com/HuCaoFighting/Swin-Unet
 architecture_name: swinunet
 family: Transformers
 

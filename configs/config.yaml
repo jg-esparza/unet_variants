@@ -2,7 +2,7 @@
 defaults:
   - base
   - model: unet
-  - dataset: isic2018
+  - dataset: isic2017
   - inspect: default
   - logging: mlflow
   - train: default
@@ -11,8 +11,8 @@ defaults:
 
 project:
   # I/O
-  batch_size: 32
-  image_size: 224
+  batch_size: 16
+  image_size: 256
   augmentation: True
   # Dataloaders
   num_workers: 1
@@ -20,7 +20,7 @@ project:
   device: cuda
   seed: 42
   # Training
-  epochs: 300
+  epochs: 3
   use_pretrained_ckpt: False
 
   env: ${paths.repo_root}/environment.yml

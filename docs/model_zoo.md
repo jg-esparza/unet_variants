@@ -18,6 +18,13 @@ Strengths:
 - Low FLOPs
 - Easy to train
 
+### MALUNet
+Muti-Attention and Light-weight UNet
+
+Features:
+- Gated attention mechanisms
+- External attention 
+- Multi-stage features
 ---
 
 ## 2. Transformer‑Based Models

@@ -1,3 +1,5 @@
+from omegaconf import DictConfig
+
 import copy
 import logging
 
@@ -9,26 +11,26 @@ from models.transformers.components.swinunet.swin_transformer_unet_skip_expand_d
 logger = logging.getLogger(__name__)
 
 class SwinUnet(nn.Module):
-    def __init__(self, config):
+    def __init__(self, cfg: DictConfig):
         super(SwinUnet, self).__init__()
-        self.config = config
-        self.swin_unet = SwinTransformerSys(img_size=config.image_size,
-                                patch_size=config.swin.patch_size,
-                                in_chans=config.in_channels,
-                                num_classes=config.out_channels,
-                                embed_dim=config.swin.embed_dim,
-                                depths=config.swin.depths,
-                                depths_decoder=config.swin.decoder_depths,
-                                num_heads=config.swin.num_heads,
-                                window_size=config.swin.window_size,
-                                mlp_ratio=config.swin.mlp_ratio,
-                                qkv_bias=config.swin.qkv_bias,
-                                qk_scale=config.swin.qk_scale,
-                                ape=config.swin.ape,
-                                patch_norm=config.swin.patch_norm,
-                                drop_rate=config.drop_rate,
-                                drop_path_rate=config.drop_path_rate,
-                                use_checkpoint=config.use_checkpoint)
+        self.cfg = cfg
+        self.swin_unet = SwinTransformerSys(img_size=cfg.image_size,
+                                patch_size=cfg.swin.patch_size,
+                                in_chans=cfg.in_channels,
+                                num_classes=cfg.out_channels,
+                                embed_dim=cfg.swin.embed_dim,
+                                depths=cfg.swin.depths,
+                                depths_decoder=cfg.swin.decoder_depths,
+                                num_heads=cfg.swin.num_heads,
+                                window_size=cfg.swin.window_size,
+                                mlp_ratio=cfg.swin.mlp_ratio,
+                                qkv_bias=cfg.swin.qkv_bias,
+                                qk_scale=cfg.swin.qk_scale,
+                                ape=cfg.swin.ape,
+                                patch_norm=cfg.swin.patch_norm,
+                                drop_rate=cfg.drop_rate,
+                                drop_path_rate=cfg.drop_path_rate,
+                                use_checkpoint=cfg.use_checkpoint)
 
     def forward(self, x):
         if x.size()[1] == 1:
@@ -37,7 +39,7 @@ class SwinUnet(nn.Module):
         return logits
 
     def load_from(self, path=None):
-        pretrained_path = self.config.pretrained_ckpt if path is None else path
+        pretrained_path = self.cfg.pretrained_ckpt if path is None else path
         if pretrained_path is not None:
             print("pretrained_path:{}".format(pretrained_path))
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
