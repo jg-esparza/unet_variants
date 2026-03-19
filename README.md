@@ -128,9 +128,16 @@ unet_variants/
 
 ---
 
+## Requirements
+
+- Linux
+- NVIDIA GPU
+- Conda
+
 ## 🚀 Quickstart
 
-### Install environment
+### Install environment 
+
 ```
 conda env create -f environment.yml
 conda activate unet-variants

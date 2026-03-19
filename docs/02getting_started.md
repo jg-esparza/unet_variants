@@ -33,12 +33,40 @@ Resume training:
 ```bash
 python scripts/resume.py logging.run_id=<run_id>
 ```
-## 3. Folder Structure Summary
+
+## 3. Config Structure
+See the main README for full structure, or browse:
+```markdown
+
+configs/
+├── dataset/                       
+    ├── isic2017.yaml        # Dataset config, name, task, local directory, normalization stats
+    ├── isic2018.yaml        
+    └── augmentation.yaml    # Enable augmentation and set random transformation probability
+├── model/
+    ├── unet_config/         # Base Unet variants with ResNet18 and ResNet34 from torchvision
+    ├── unet.yaml            # Base Unet
+    ├── att_unet.yaml        # Attention U-Net, adapted from original
+    ├── malunet.yaml         # MALUNet, following original config
+    ├── transunet.yaml       # TransUNet, following original config
+    ├── swinunet.yaml        # Swin-Unet, following original config
+    └── vmunet.yaml          # VM-UNet, following original config
+├── inspect/
+    └── default.yaml         # Model inspection config
+├── logging/
+    └── mlflow.yaml          # MLflow config
+├── train/
+    └── default.yaml         # Loss, optimizer, scheduler
+└── eval/
+    └── default.yaml         # Task, threshold
+```
+
+## 4. Source Code Structure Summary
 See the main README for full structure, or browse:
 ```markdown
 
 src/
-├── data/                    # Datasets and augmentations       
+├── dataset/                 # Datasets and augmentations       
 ├── engine/                  # Train/validate/evaluate loops
 ├── factory/                 # Model, loss, optimizer, scheduler builders
 ├── models/                  # CNN, Transformer architectures
