@@ -110,10 +110,11 @@ class ModelInspector:
     @torch.no_grad()
     def export_onnx(self) -> None:
         """Export ONNX graph."""
+        print("=== Exporting onnx ===")
         try:
             torch.onnx.export(self.model,  # model being run
-                              torch.randn(self.b, self.c, self.h, self.w, device=self.device),  # model input (or a tuple for multiple inputs)
-                              self.cfg.onnxx_path,  # where to save the model (can be a file or file-like object)
+                              torch.randn(self.b, self.c, self.h, self.w, device=self.device),  # model input (or a tuple for multiple inputs) # Noqa
+                              self.cfg.onnx_path,  # where to save the model (can be a file or file-like object)
                               input_names=['input'],  # the model's input names
                               output_names=['output'])
         except RuntimeError as e:
@@ -127,7 +128,7 @@ class ModelInspector:
         try:
             import netron
             netron.start(self.cfg.onnxx_path, address=(host, port), browse=browse)
-            print(f"Netron started at http://{host}:{port} (showing {self.cfg.onnxx_path})")
+            print(f"Netron started at http://{host}:{port} (showing {self.cfg.onnxx_path})")    # Noqa
         except ImportError:
             print("Netron is not installed.")
             print("Option A: pip install netron and rerun view_onnx (jupyter notebook)")

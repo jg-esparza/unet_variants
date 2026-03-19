@@ -1,0 +1,24 @@
+# VM-UNet: From https://github.com/JCruan519/VM-UNet
+architecture_name: vmunet
+family: SSM
+
+# Model name
+name: vmunet
+
+# I/O
+in_channels: ${dataset.in_channels}
+out_channels: ${dataset.out_channels}
+# Image Size
+image_size: ${project.image_size}
+
+# Number of VSS blocks
+# Encoder
+depths_encoder: [2,2,2,2]
+# Decoder
+depths_decoder: [2,2,2,1]
+
+# Drop path rate
+drop_path_rate: 0.2
+
+# Pretrained ckpt
+pretrained_ckpt: vmamba_small_e238_ema.pth

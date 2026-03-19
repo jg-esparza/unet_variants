@@ -1,13 +1,27 @@
-name: unet-variants
+name: unet_variants
 channels:
   - conda-forge
+  - nvidia
+
 dependencies:
   - python=3.11
+  - cuda-toolkit=12.4
   - pip
   - pip:
-      - torch==2.9.0+cu128
-      - torchvision==0.24.0+cu128
-      - --extra-index-url https://download.pytorch.org/whl/cu128
+      # Pytorch
+      - torch==2.4.1+cu124
+      - torchvision==0.19.1+cu124
+      - --extra-index-url https://download.pytorch.org/whl/cu124
+      # Required BEFORE building causal-conv1d / mamba_ssm
+      - yacs==0.1.8
       - timm==1.0.25
       - einops==0.8.2
+      - ninja==1.13.0
+      - regex==2026.2.28
+      - tokenizers==0.22.2
+      - transformers==4.56.0
+      # CUDA extension packages
+      - causal-conv1d==1.6.1 
+      - mamba_ssm==2.2.4
+      # Editable installation
       - -e .

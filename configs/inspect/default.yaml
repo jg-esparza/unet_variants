@@ -15,4 +15,5 @@ export_path: ${paths.report_dir}/img_${dataset.image_size}_inspect_bs${inspect.b
 summary_path: ${inspect.export_path}/torchsummary.txt
 
 # Path to save onnx file
-onnxx_path: ${inspect.export_path}/${model.name}_onnx.onnx
+export_onnx: True
+onnx_path: ${inspect.export_path}/${model.name}.onnx

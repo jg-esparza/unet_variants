@@ -27,7 +27,15 @@ Use multiple overrides:
 python scripts/train.py model=swinunet project.batch_size=4 project.epochs=200
 ```
 
+Enable use of pretrained checkpoints: 
+```bash
+python scripts/train.py model=swinunet project.use_pretrained_ckpt=True
+```
+
+Pretrained checkpoints at `pretrained_ckpt/`
+
 ### 3. Training Artifacts
+
 Saved under: `runs/mlruns/<experiment_id>/<run_id>/artifacts/`
 Includes:
 

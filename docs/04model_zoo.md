@@ -59,7 +59,7 @@ Features:
 
 ### 3. State‑Space Models (SSM)
 
-#### VM‑UNet (in progress)
+#### VM‑UNet
 U‑Net with VMamba blocks.
 
 - Pure SSM-based
@@ -76,6 +76,7 @@ U‑Net with VMamba blocks.
 1. Implement model in `src/models/<family>`
 2. Register it in `src/factory/models.py`
 3. Create a config in `configs/model/`
+4. (Optional) Put a pretrained checkpoint at `pretrained_ckpt/`
 
 Example:
 

@@ -61,7 +61,7 @@ Easily add:
 
 ### State‑Space Models
 
-- **VM‑UNet**: Vision Mamba UNet for Medical Image Segmentation (in progress)
+- **VM‑UNet**: Vision Mamba UNet for Medical Image Segmentation
   - https://arxiv.org/pdf/2402.02491
 
 ---
@@ -80,17 +80,18 @@ See docs/datasets.md for preparation instructions.
 
 ---
 
-## 📏 Computational Benchmark (256×256 Input)
+## 📏 Computational Benchmark (1×3×256×256 Input)
 
 
 <!-- BEGIN_BENCHMARK_TABLE -->
 |          Model           | Params (M) | FLOPs (G) | Size (MB) |
 |:------------------------:|:----------:|:---------:|:---------:|
-|      UNet(ResNet34)      |    26.76   |   7.13    |  209.69   |
-| Swin‑UNet(Window Size 8) |    27.17   |   7.72    |  496.03   |
+|      UNet(ResNet34)      |   26.76    |   7.13    |  209.69   |
+| Swin‑UNet(Window Size 8) |   27.17    |   7.72    |  496.03   |
+|         VM‑UNet          |   27.43    |   4.11    |  344.66   |
 <!-- END_BENCHMARK_TABLE -->
 
-Benchmark example, computed using
+Example computed using
 
 - torchinfo (parameters)
 - ultralytics-thop (FLOPs)

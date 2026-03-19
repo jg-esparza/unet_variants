@@ -21,7 +21,9 @@ def main(cfg: DictConfig) -> None:
     # Print summary / params / flops
     inspector.model_summary()
     report = inspector.get_report(verbose=True)
-    print(report)
+    # print(report)
+    if cfg.inspect.export_onnx:
+        inspector.export_onnx()
 
 if __name__ == "__main__":
     main()

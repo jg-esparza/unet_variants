@@ -11,7 +11,7 @@ defaults:
 
 project:
   # I/O
-  batch_size: 16
+  batch_size: 32
   image_size: 256
   augmentation: True
   # Dataloaders
@@ -20,7 +20,7 @@ project:
   device: cuda
   seed: 42
   # Training
-  epochs: 3
+  epochs: 300
   use_pretrained_ckpt: False
 
   env: ${paths.repo_root}/environment.yml

@@ -9,6 +9,7 @@ from models.cnn.attention_unet import AttU_Net
 from models.cnn.malunet import MALUNet
 from models.transformers.transunet import TransUNet
 from models.transformers.swinunet import SwinUnet
+from models.ssm.vmunet import VMUNet
 
 from factory.registries import review_registry_availability, validate_instance
 
@@ -23,6 +24,7 @@ class ModelFactory:
         "malunet": lambda cfg: MALUNet(cfg),
         "transunet": lambda cfg: TransUNet(cfg),
         "swinunet": lambda cfg: SwinUnet(cfg),
+        "vmunet": lambda cfg: VMUNet(cfg)
     }
 
     @classmethod

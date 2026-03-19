@@ -5,16 +5,7 @@ This guide introduces the core concepts of the U‑Net Benchmarking Framework an
 
 ---
 
-## 1. Installation
-
-The project uses Conda for environment management and PyTorch as backend.
-
-```bash
-conda env create -f environment.yml
-conda activate unet-variants
-```
-
-## 2. Project Overview
+## 1. Project Overview
 This framework provides:
 
 - CNN · Transformer · SSM‑based U‑Net variants 
@@ -25,7 +16,7 @@ This framework provides:
 - ONNX export 
 - Easily extendable model/loss/optimizer factory
 
-## 3. Quick Examples
+## 2. Quick Examples
 Inspect a model:
 ```bash
 python scripts/model_inspect.py model=unet
@@ -42,7 +33,7 @@ Resume training:
 ```bash
 python scripts/resume.py logging.run_id=<run_id>
 ```
-## 4. Folder Structure Summary
+## 3. Folder Structure Summary
 See the main README for full structure, or browse:
 ```markdown
 

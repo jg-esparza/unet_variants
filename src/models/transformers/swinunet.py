@@ -1,14 +1,12 @@
 from omegaconf import DictConfig
 
 import copy
-import logging
 
 import torch
 import torch.nn as nn
 
 from models.transformers.components.swinunet.swin_transformer_unet_skip_expand_decoder_sys import SwinTransformerSys
 
-logger = logging.getLogger(__name__)
 
 class SwinUnet(nn.Module):
     def __init__(self, cfg: DictConfig):
