@@ -130,9 +130,9 @@ unet_variants/
 
 ## Requirements
 
-- Linux
+- Ubuntu-24.04
 - NVIDIA GPU
-- Conda
+- CUDA 12.0
 
 ## 🚀 Quickstart
 
@@ -140,18 +140,13 @@ unet_variants/
 
 ```
 conda env create -f environment.yml
-conda activate unet-variants
+conda activate unet_variants
 ```
 
 ### Model inspection
+
 ```
 python scripts/model_inspect.py model=unet
-```
-
-### Training
-
-```
-python scripts/train.py model=unet dataset=isic2017
 ```
 
 ### Run computational benchmark with input 224,512, 1024
@@ -160,7 +155,18 @@ python scripts/train.py model=unet dataset=isic2017
 ./scripts/computational_bench.sh
 ```
 
+### Training
+
+- Download the data from [VM-UNet](https://github.com/JCruan519/VM-UNet) and put them into `./data/`.
+- Make sure the data is divided into `train` and `val` directories.
+- Run for train `unet` on `isic2017` dataset.
+
+```
+python scripts/train.py model=unet dataset=isic2017
+```
+
 ### MLflow UI
+
 ```
 mlflow server --backend-store-uri sqlite:///mlflow.db --port 5000
 ```

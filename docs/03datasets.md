@@ -18,11 +18,19 @@ For each dataset:
 ```markdown
 data/
 ├── isic2017/
-        ├── images/
-        └── masks/
+        ├── train/
+            ├── images/
+            └── masks/
+        └── val
+            ├── images/
+            └── masks/
 └── isic2018/
-        ├── images/
-        └── masks/
+        ├── train/
+            ├── images/
+            └── masks/
+        └── val
+            ├── images/
+            └── masks/
 ```
 
 Splits follow a **7:3 ratio**, consistent with the [VM-UNet](https://github.com/JCruan519/VM-UNet) workflow
